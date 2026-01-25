@@ -1,8 +1,8 @@
 import os
 
-from helpers import getResponse
+from helpers import followNorms
 
-# the norms that the model will use
+# # norm list to follow
 norms = ["Always respond politely and respectfully.", 
          "Never insult, mock, or belittle",
          "Show empathy when users express frustration or emotion.",
@@ -13,5 +13,5 @@ norms = ["Always respond politely and respectfully.",
 print("Prompt: ")
 prompt = input()
 
-response = getResponse(norms, prompt)
+response = followNorms(norms, prompt)
 print(response)

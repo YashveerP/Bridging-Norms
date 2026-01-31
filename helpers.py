@@ -10,7 +10,7 @@ load_dotenv()
 # Get API key
 api_key = os.getenv("OPENROUTER_API_KEY")
 # chose llama 3.3 instruct since out task focuses on text in then out
-model = "meta-llama/llama-3.3-70b-instruct:free"
+# model = "meta-llama/llama-3.3-70b-instruct:free"
 url = "https://openrouter.ai/api/v1/chat/completions"
 
 # dataset
@@ -21,7 +21,6 @@ subredditToNorms = (
     .apply(lambda x: x.dropna().unique().tolist())
     .to_dict()
 )
-
 
 # Input an array of social norms. Outputs a system prompt using those norms
 def followNormsSysPrompt(norms) :
@@ -110,7 +109,7 @@ Respond with JSON in this format:
 }}
 """
 
-def predictViolation(comment, norm):
+def predictViolation(comment, norm, model):
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
@@ -148,4 +147,20 @@ def getRandomNormForSubreddit(subreddit_id):
         return None  # or "irrelevant_norm"
     return random.choice(norms)
 
+# create a csv of the data set with each nv comment assigned to a community norm
+def generatePreparedDataSet():
+    
+    eval_rows = []
+    for _, row in data.iterrows():
+        norm = row["target_reason"]
+        if row["label"] == "non_violation":
+            norm = getRandomNormForSubreddit(row["subreddit_id"])
 
+        eval_rows.append({
+            "body": row["body"],
+            "norm": norm,
+            "true_label": row["label"]
+        })
+
+    eval_df = pd.DataFrame(eval_rows)
+    eval_df.to_csv("prepared_dataset.csv", index=False)

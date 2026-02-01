@@ -1,6 +1,6 @@
 import pandas as pd
-from helpers import predictViolation, generatePreparedDataSet
-from LocalMachineHelpers import localPredictViolation
+from utils.predictLabelUtils import predictViolation
+from utils.localPredictLabelUtils import localPredictViolation
 import json
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
@@ -15,7 +15,7 @@ from sklearn.metrics import (
 NUM_TESTS = 50
 MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 
-df = pd.read_csv('prepared_dataset.csv')
+df = pd.read_csv('datasets/prepared_dataset.csv')
 
 train_df, test_df = train_test_split(
     df,
@@ -48,7 +48,7 @@ for i in tqdm(range(NUM_TESTS)):
 
 
     # write to results.json at end of iteration in case later breaks
-    with open("results.json", "w", encoding="utf-8") as f:
+    with open("results/results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
 #Performance metrics
@@ -94,6 +94,6 @@ metrics = {
     "confusion_matrix": cm.tolist()
 }
 
-with open("metrics.json", "w", encoding="utf-8") as f:
+with open("results/metrics.json", "w", encoding="utf-8") as f:
     json.dump(metrics, f, indent=2)
 

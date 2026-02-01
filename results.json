@@ -1,9 +1,0 @@
-[
-  {
-    "body": "i’m white. be quiet, fool.",
-    "target_reason": "incivility, overly cruel or hostile",
-    "true_label": "violation",
-    "pred_label": "violation",
-    "confidence": 0.9
-  }
-]

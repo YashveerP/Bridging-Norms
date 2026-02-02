@@ -1,15 +1,24 @@
-import requests, re
+import requests, os, json
 from dotenv import load_dotenv
-import os
+from utils.localPredictLabelUtils import parse_or_repair_json
 
 # Load variables from .env
 load_dotenv()
 # Get API key
 api_key = os.getenv("OPENROUTER_API_KEY")
-# chose llama 3.3 instruct since out task focuses on text in then out
-# model = "meta-llama/llama-3.3-70b-instruct:free"
 url = "https://openrouter.ai/api/v1/chat/completions"
 
+def getModels():
+    models = requests.get(
+        "https://openrouter.ai/api/v1/models",
+        headers={"Authorization": f"Bearer {api_key}"}
+    ).json()
+
+    for m in models["data"]:
+        if ":free" in m["id"]:
+            print(m["id"])
+
+        
 predictLabelSysPrompt = """
 You are a Reddit moderation classifier.
 
@@ -31,8 +40,8 @@ COMMENT:
 
 Respond with JSON in this format:
 {{
-  "label": violation or non_violation,
-  "evidence": EXACT substring copied verbatim from the input text
+  "label": "violation" or "non_violation",
+  "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
 }}
 """
 
@@ -54,17 +63,22 @@ def predictViolation(comment, norm, model):
     }
 
     response = requests.post(url, headers=headers, json=data)
-    response.raise_for_status()
+    
+    if response.status_code != 200:
+        print("ERROR RESPONSE:", response.text)
+        response.raise_for_status()
 
     result = response.json()
     msg = result["choices"][0]["message"]
 
     content = msg.get("content", "").strip()
 
-    match = re.search(r"\{.*\}", content, re.DOTALL)
-    if not match:
-        raise ValueError(f"Could not find JSON in model output: {text}")
+    parsed = parse_or_repair_json(content)
 
-    return match.group(0)
+    # Extra safety: evidence must exist in comment
+    if parsed["evidence"] and parsed["evidence"] not in comment:
+        parsed["evidence"] = ""
+
+    return json.dumps(parsed, ensure_ascii=False)
 
 

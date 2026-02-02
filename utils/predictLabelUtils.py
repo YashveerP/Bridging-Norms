@@ -1,5 +1,6 @@
 import requests, os, json, re
 from dotenv import load_dotenv
+from utils.prompts import predictLabelMakePrompt, predictLabelSysPromptZS, predictLabelSysPromptOS
 
 # Load variables from .env
 load_dotenv()
@@ -17,33 +18,6 @@ def getModels():
         if ":free" in m["id"]:
             print(m["id"])
 
-        
-predictLabelSysPrompt = """
-You are a Reddit moderation classifier.
-
-Your task is to decide whether a comment violates a given norm.
-
-Rules:
-- Use ONLY the comment text
-- Count as a violation if their is explicit evidence
-- Output MUST be valid JSON
-"""
-
-def make_prompt(comment, norm):
-    return f"""
-NORM TO CHECK:
-\"\"\"{norm}\"\"\"
-
-COMMENT:
-\"\"\"{comment}\"\"\"
-
-Respond with JSON in this format:
-{{
-  "label": "violation" or "non_violation",
-  "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
-}}
-"""
-
 def predictViolation(comment, norm, model):
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -54,8 +28,8 @@ def predictViolation(comment, norm, model):
     data = {
         "model": model,
         "messages": [
-            {"role": "system", "content": predictLabelSysPrompt},
-            {"role": "user", "content": make_prompt(comment, norm)}
+            {"role": "system", "content": predictLabelSysPromptZS},
+            {"role": "user", "content": predictLabelMakePrompt(comment, norm)}
         ],
         "max_tokens": 1000,
         "temperature": 0.0

@@ -1,6 +1,5 @@
-import requests, os, json
+import requests, os, json, re
 from dotenv import load_dotenv
-from utils.localPredictLabelUtils import parse_or_repair_json
 
 # Load variables from .env
 load_dotenv()
@@ -82,3 +81,16 @@ def predictViolation(comment, norm, model):
     return json.dumps(parsed, ensure_ascii=False)
 
 
+def parse_or_repair_json(content):
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError:
+        # Fix unquoted labels
+        content = re.sub(r'"label"\s*:\s*(violation|non_violation)',
+                         r'"label": "\1"', content)
+        # Fix triple-quoted evidence
+        content = re.sub(r'"evidence"\s*:\s*"""(.*?)"""',
+                         lambda m: '"evidence": ' + json.dumps(m.group(1)),
+                         content,
+                         flags=re.DOTALL)
+        return json.loads(content)

@@ -1,6 +1,6 @@
 import pandas as pd
-from utils.predictLabelUtils import predictViolation
-from utils.localPredictLabelUtils import localPredictViolation, COT
+from utils.predictLabelUtils import predictViolation, COT
+from utils.localPredictLabelUtils import localPredictViolation, localCOT
 import json, time, re, os
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
@@ -13,8 +13,8 @@ from sklearn.metrics import (
 )
 
 NUM_TESTS = 50
-# MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-MODEL="qwen2.5:7b-instruct"
+MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+# MODEL="qwen2.5:7b-instruct-ZS"
 
 safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
 path = f"results/{safe_model}"
@@ -45,7 +45,7 @@ for i in tqdm(range(NUM_TESTS)):
     # time.sleep(3)
     # output = predictViolation(row["body"], row["norm"], MODEL)
     output = localPredictViolation(row["body"], row["norm"])
-    # output = COT(row["body"], row["norm"])
+    # output = COT(row["body"], row["norm"], MODEL)
     parsed = json.loads(output)
     results.append({
         "body": row["body"],
@@ -63,20 +63,30 @@ for i in tqdm(range(NUM_TESTS)):
     with open(f"{path}/results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
 
+# fraction of correct predicitons
 acc = accuracy_score(y_true, y_pred)
 
+# out of all positive predictions, what fraction was correct?
+# ability not to label as positive a sample that is negative
+# tp/(tp + fp)
 prec = precision_score(
     y_true, y_pred,
     pos_label="violation",
     zero_division=0
 )
 
+# how many of the positive labels was the model able to predict?
+# ability to find all the positive samples
+# tp/(tp + fn)
 rec = recall_score(
     y_true, y_pred,
     pos_label="violation",
     zero_division=0
 )
 
+# harmonic mean of precision and recall
+# how good is your model in general?
+# 2(prec * recall)/(precision + recall)
 f1 = f1_score(
     y_true, y_pred,
     pos_label="violation",

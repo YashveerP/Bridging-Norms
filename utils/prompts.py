@@ -102,7 +102,7 @@ Quote them verbatim. If nothing is relevant, say: "No relevant text found."
 """
 
 
-def predictLabelMakePromptCOT3(_):
+def predictLabelMakePromptCOT3():
     return """
 Based on all previous steps, provide ONLY valid JSON in exactly this format:
 

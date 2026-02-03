@@ -55,16 +55,38 @@ def predictViolation(comment, norm, model):
     return json.dumps(parsed, ensure_ascii=False)
 
 
-def parse_or_repair_json(content):
+def parse_or_repair_json(content: str):
+    content = content.strip()
+
+    # --- 🔹 FIX #1: HANDLE EMPTY OUTPUT FIRST ---
+    if not content:
+        raise ValueError("Model returned empty content")
+
+    # Try to extract JSON if the model added extra text
+    match = re.search(r"\{.*\}", content, re.DOTALL)
+    if not match:
+        raise ValueError(f"Could not find JSON in model output: {repr(content)}")
+
+    json_str = match.group(0)
+
     try:
-        return json.loads(content)
+        return json.loads(json_str)
     except json.JSONDecodeError:
-        # Fix unquoted labels
-        content = re.sub(r'"label"\s*:\s*(violation|non_violation)',
-                         r'"label": "\1"', content)
-        # Fix triple-quoted evidence
-        content = re.sub(r'"evidence"\s*:\s*"""(.*?)"""',
-                         lambda m: '"evidence": ' + json.dumps(m.group(1)),
-                         content,
-                         flags=re.DOTALL)
-        return json.loads(content)
+        # --- 🔹 FIX #2: REPAIR COMMON LLM MISTAKES ---
+        json_str = re.sub(
+            r'"label"\s*:\s*(violation|non_violation)',
+            r'"label": "\1"',
+            json_str
+        )
+
+        json_str = re.sub(
+            r'"evidence"\s*:\s*"""(.*?)"""',
+            lambda m: '"evidence": ' + json.dumps(m.group(1)),
+            json_str,
+            flags=re.DOTALL
+        )
+
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            raise ValueError(f"Could not parse JSON even after repair: {repr(json_str)}")

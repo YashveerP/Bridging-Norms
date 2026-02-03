@@ -1,7 +1,7 @@
 import pandas as pd
 from utils.predictLabelUtils import predictViolation
-from utils.localPredictLabelUtils import localPredictViolation
-import json
+from utils.localPredictLabelUtils import localPredictViolation, COT
+import json, time, re, os
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
@@ -14,14 +14,21 @@ from sklearn.metrics import (
 
 NUM_TESTS = 50
 MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+# MODEL="qwen2.5:7b-instruct-COT"
 
-df = pd.read_csv('datasets/prepared_dataset.csv')
+safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
+path = f"results/{safe_model}"
 
-train_df, test_df = train_test_split(
-    df,
-    test_size=NUM_TESTS,         # 25% test(defualt)
-    stratify=df["true_label"] # stratify on true label so both dfs have even violations and non violations
-)
+# df = pd.read_csv('datasets/prepared_dataset.csv')
+
+# train_df, test_df = train_test_split(
+#     df,
+#     test_size=NUM_TESTS,         # constant number of tests
+#     stratify=df["true_label"] # stratify on true label so both dfs have even violations and non violations
+# )
+# test_df.to_csv("datasets/tests.csv")
+
+df = pd.read_csv('datasets/tests.csv')
 
 # go through each violated comment and store json
 results = []
@@ -31,10 +38,14 @@ y_true = []
 y_pred = []
 
 # for each sample
-for i in tqdm(range(NUM_TESTS)):
-    row = test_df.iloc[i]
-    # output = predictViolation(row["body"], row["norm"], MODEL)
-    output = localPredictViolation(row["body"], row["norm"])
+for i in tqdm(range(16, 17)):
+    row = df.iloc[i]
+
+    # sleep to avoid too many requests error
+    time.sleep(3)
+    output = predictViolation(row["body"], row["norm"], MODEL)
+    # output = localPredictViolation(row["body"], row["norm"])
+    # output = COT(row["body"], row["norm"])
     parsed = json.loads(output)
     results.append({
         "body": row["body"],
@@ -48,11 +59,9 @@ for i in tqdm(range(NUM_TESTS)):
 
 
     # write to results.json at end of iteration in case later breaks
-    with open("results/results.json", "w", encoding="utf-8") as f:
+    os.makedirs(path, exist_ok=True)
+    with open(f"{path}/results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
-
-#Performance metrics
-print("\n=== Performance Metrics ===")
 
 acc = accuracy_score(y_true, y_pred)
 
@@ -76,17 +85,9 @@ f1 = f1_score(
 
 cm = confusion_matrix(y_true, y_pred, labels=["non_violation", "violation"])
 
-
-print(f"Accuracy:  {acc:.3f}")
-print(f"Precision: {prec:.3f}")
-print(f"Recall:    {rec:.3f}")
-print(f"F1:        {f1:.3f}")
-print("\nConfusion Matrix:")
-print(cm)
-
-
 metrics = {
     "model": MODEL,
+    "num_tests": NUM_TESTS,
     "accuracy": acc,
     "precision": prec,
     "recall": rec,
@@ -94,6 +95,6 @@ metrics = {
     "confusion_matrix": cm.tolist()
 }
 
-with open("results/metrics.json", "w", encoding="utf-8") as f:
+with open(f"{path}/metrics.json", "w", encoding="utf-8") as f:
     json.dump(metrics, f, indent=2)
 

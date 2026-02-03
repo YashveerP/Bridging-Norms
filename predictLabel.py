@@ -13,8 +13,8 @@ from sklearn.metrics import (
 )
 
 NUM_TESTS = 50
-MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-# MODEL="qwen2.5:7b-instruct-COT"
+# MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+MODEL="qwen2.5:7b-instruct"
 
 safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
 path = f"results/{safe_model}"
@@ -38,13 +38,13 @@ y_true = []
 y_pred = []
 
 # for each sample
-for i in tqdm(range(16, 17)):
+for i in tqdm(range(NUM_TESTS)):
     row = df.iloc[i]
 
     # sleep to avoid too many requests error
-    time.sleep(3)
-    output = predictViolation(row["body"], row["norm"], MODEL)
-    # output = localPredictViolation(row["body"], row["norm"])
+    # time.sleep(3)
+    # output = predictViolation(row["body"], row["norm"], MODEL)
+    output = localPredictViolation(row["body"], row["norm"])
     # output = COT(row["body"], row["norm"])
     parsed = json.loads(output)
     results.append({

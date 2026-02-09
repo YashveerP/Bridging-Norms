@@ -15,9 +15,9 @@ def buildMessages(promptType, useCOT, batch):
     if useCOT:
         return [
         {"role": "system", "content": sysPrompt},
-        {"role": "user", "content": predictLabelMakePromptCOT1(norm)},
-        {"role": "user", "content": predictLabelMakePromptCOT2(comment)},
-        {"role": "user", "content": predictLabelMakePromptCOT3()}
+        {"role": "user", "content": predictLabelMakePromptCOT1(batch)},
+        {"role": "user", "content": predictLabelMakePromptCOT2(batch)},
+        {"role": "user", "content": predictLabelMakePromptCOT3(batch)}
     ]
     else:
         return [
@@ -163,7 +163,7 @@ Respond with a **single valid JSON array** in exactly this format:
 """
 
 
-def predictLabelMakePromptCOT1(norm):
+def predictLabelMakePromptCOT1OLD(norm):
     return f"""
 NORM TO CHECK:
 \"\"\"{norm}\"\"\"
@@ -171,8 +171,16 @@ NORM TO CHECK:
 In ONE sentence, restate what this norm prohibits in your own words.
 """
 
+def predictLabelMakePromptCOT1(content_to_check):
+    return f"""
+For each of the following comments:
 
-def predictLabelMakePromptCOT2(comment):
+{json.dumps(content_to_check, indent=2, ensure_ascii=False)}
+
+In ONE sentence, restate what the norm prohibits in your own words.
+"""
+
+def predictLabelMakePromptCOT2OLD(comment):
     return f"""
 COMMENT:
 \"\"\"{comment}\"\"\"
@@ -181,8 +189,17 @@ Identify any parts of the comment that could be relevant to the norm.
 Quote them verbatim. If nothing is relevant, say: "No relevant text found."
 """
 
+def predictLabelMakePromptCOT2(content_to_check):
+    return f"""
+For each of the following comments:
 
-def predictLabelMakePromptCOT3():
+{json.dumps(content_to_check, indent=2, ensure_ascii=False)}
+
+Identify any parts of the comment that could be relevant to the norm.
+Quote them verbatim. If nothing is relevant, say: "No relevant text found."
+"""
+
+def predictLabelMakePromptCOT3OLD():
     return """
 Based on all previous steps, provide ONLY valid JSON in exactly this format:
 
@@ -190,6 +207,24 @@ Based on all previous steps, provide ONLY valid JSON in exactly this format:
   "label": "violation" or "non_violation",
   "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n, or empty string if non_violation"
 }
+"""
+
+def predictLabelMakePromptCOT3(content_to_check):
+    return f"""
+For each of the following comments:
+
+{json.dumps(content_to_check, indent=2, ensure_ascii=False)}
+
+Based on all previous steps, respond with a **single valid JSON array** in exactly this format:
+
+[
+  {{
+    "comment_id": XX,
+    "label": "violation" or "non_violation",
+    "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
+  }},
+  ...
+]
 """
 
 

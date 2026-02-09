@@ -14,14 +14,17 @@ NUM_TESTS = 100
 BATCH_SIZE = 20
 
 # MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-PROMPT_TYPE = "FewShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
+PROMPT_TYPE = "ZeroShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
 USE_COT = False
-RUNNER = "openrouter"         # ← choose: "local" or "openrouter"
+PROMPT_NAME = PROMPT_TYPE + ("-COT" if USE_COT else "")
+RUNNER = "local"         # ← choose: "local" or "openrouter"
+
 LOCAL_MODEL="qwen2.5:7b-instruct"
-MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+OR_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+MODEL = LOCAL_MODEL
 
 safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
-path = f"results/{safe_model}/{PROMPT_TYPE}"
+path = f"results/{safe_model}/{PROMPT_NAME}"
 
 df = pd.read_csv('datasets/tests.csv')
 
@@ -123,7 +126,7 @@ cm = confusion_matrix(y_true, y_pred, labels=["non_violation", "violation"])
 
 metrics = {
     "model": MODEL,
-    "prompt": PROMPT_TYPE,
+    "prompt": PROMPT_NAME,
     "num_tests": NUM_TESTS,
     "batch_size": BATCH_SIZE,
     "accuracy": acc,

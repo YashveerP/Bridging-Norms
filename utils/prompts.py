@@ -173,7 +173,7 @@ In ONE sentence, restate what this norm prohibits in your own words.
 
 def predictLabelMakePromptCOT1(content_to_check):
     return f"""
-For each of the following comments:
+For each of the following comments, reason independently:
 
 {json.dumps(content_to_check, indent=2, ensure_ascii=False)}
 
@@ -191,7 +191,7 @@ Quote them verbatim. If nothing is relevant, say: "No relevant text found."
 
 def predictLabelMakePromptCOT2(content_to_check):
     return f"""
-For each of the following comments:
+For each of the following comments, reason independently:
 
 {json.dumps(content_to_check, indent=2, ensure_ascii=False)}
 
@@ -211,7 +211,7 @@ Based on all previous steps, provide ONLY valid JSON in exactly this format:
 
 def predictLabelMakePromptCOT3(content_to_check):
     return f"""
-For each of the following comments:
+For each of the following comments, reason independently:
 
 {json.dumps(content_to_check, indent=2, ensure_ascii=False)}
 

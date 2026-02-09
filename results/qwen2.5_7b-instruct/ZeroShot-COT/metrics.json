@@ -3,20 +3,20 @@
   "prompt": "ZeroShot-COT",
   "num_tests": 100,
   "batch_size": 20,
-  "accuracy": 0.71,
-  "violation_precision": 0.75,
-  "non_violation_precision": 0.6875,
-  "violation_recall": 0.574468085106383,
-  "non_violation_recall": 0.8301886792452831,
-  "f1": 0.6506024096385542,
+  "accuracy": 0.8089887640449438,
+  "violation_precision": 0.8333333333333334,
+  "non_violation_precision": 0.7872340425531915,
+  "violation_recall": 0.7777777777777778,
+  "non_violation_recall": 0.8409090909090909,
+  "f1": 0.8045977011494253,
   "confusion_matrix": [
     [
-      44,
-      9
+      37,
+      7
     ],
     [
-      20,
-      27
+      10,
+      35
     ]
   ]
 }

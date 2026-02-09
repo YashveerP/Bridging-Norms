@@ -5,7 +5,10 @@ __pycache__/
 # Environment / API keys
 .env
 *.env
-data_training_selected_clusters_comments_and_rules.csv
 
 # VS Code settings
 .vscode/
+
+#data
+datasets/
+results.json

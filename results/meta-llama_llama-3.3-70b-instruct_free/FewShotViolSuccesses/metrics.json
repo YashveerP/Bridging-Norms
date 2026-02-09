@@ -1,0 +1,22 @@
+{
+  "model": "meta-llama/llama-3.3-70b-instruct:free",
+  "prompt": "FewShotViolSuccesses",
+  "num_tests": 100,
+  "batch_size": 20,
+  "accuracy": 0.8686868686868687,
+  "violation_precision": 0.8837209302325582,
+  "non_violation_precision": 0.8571428571428571,
+  "violation_recall": 0.8260869565217391,
+  "non_violation_recall": 0.9056603773584906,
+  "f1": 0.8539325842696629,
+  "confusion_matrix": [
+    [
+      48,
+      5
+    ],
+    [
+      8,
+      38
+    ]
+  ]
+}

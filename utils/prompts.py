@@ -47,12 +47,12 @@ Rules:
 - Output MUST be valid JSON
 
 Example:
-comment: "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
+comment:  "&gt;I never understood peoples outrage with the game.\n\nMaybe because the game was unfinished? theres no 8th gym (clearly unfinished), 7th gym has no city and is a  corridor. the monotonous elevator ride that was clearly rushed. routes that take 5 seconds to cross. \n\nwild area is completely devoid of content except pop in models. \n\nstory clearly getting cut as things happen off screen.\n\nthey also LIED about not reusing models. all the old models are reused.\n\nI mean, yea its great. some people will gladly guzzle down shit. thats great. some of us expect a finished game when we pay full price. Sword and Shield is a 15 dollar game."
 norm: "no hate-speech, personal attacks or harassment"
 
 Output: {
 "label": "violation", 
-"evidence": "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
+"evidence": "some people will gladly guzzle down shit."
 }
 """
 
@@ -67,30 +67,68 @@ Rules:
 - Output MUST be valid JSON
 
 Example 1:
-comment: "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
+comment:  "Screw your stupid Rick roll.  And it wasn’t even the right song….get bent bro lol"
 norm: "no hate-speech, personal attacks or harassment"
 
 Output: {
 "label": "violation", 
-"evidence": "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
+"evidence": "Screw your stupid Rick roll.  And it wasn’t even the right song….get bent bro lol"
 }
 
 Example 2:
-comment: "it expires after next season."
-norm: "incivility, overly cruel or hostile"
-
-Output: {
-    "label": "non_violation",
-    "evidence": ""
-}
-
-Example 3:
-comment: "Maybe nobody wants to hang out with you because you're a big, fat freak?"
-norm: "incivility, overly cruel or hostile"
+comment: "Dude save your typing, it's not worth it.  Haziko is God's most brain damaged Destiny redditor.  \n\n&amp;#x200B;\n\nEvery time he loses an argument (see: often) he goes \"I'm not gonna continue\", repeats his debunked low-tier points, and declares himself the winner.  He's literally downvote-on-sight tier."
+norm: "no uncivil behavior, witchhunting, etc"
 
 Output: {
     "label": "violation",
-    "evidence": "a big, fat freak"
+    "evidence": "Haziko is God's most brain damaged Destiny redditor."
+}
+
+Example 3:
+comment: "The \"man\" is a lying piss-baby who can't accept that they're wrong."
+norm: "no uncivil behavior, witchhunting, etc"
+
+Output: {
+    "label": "violation",
+    "evidence": "The \"man\" is a lying piss-baby who can't accept that they're wrong."
+}
+"""
+
+predictLabelSysPrompt3SNEW = """
+You are a Reddit moderation classifier.
+
+Your task is to decide whether a comment violates a given norm.
+
+Rules:
+- Use ONLY the comment text
+- Count as a violation if their is explicit evidence
+- Output MUST be valid JSON
+
+Example 1:
+comment:  "&gt;I never understood peoples outrage with the game.\n\nMaybe because the game was unfinished? theres no 8th gym (clearly unfinished), 7th gym has no city and is a  corridor. the monotonous elevator ride that was clearly rushed. routes that take 5 seconds to cross. \n\nwild area is completely devoid of content except pop in models. \n\nstory clearly getting cut as things happen off screen.\n\nthey also LIED about not reusing models. all the old models are reused.\n\nI mean, yea its great. some people will gladly guzzle down shit. thats great. some of us expect a finished game when we pay full price. Sword and Shield is a 15 dollar game."
+norm: "no hate-speech, personal attacks or harassment"
+
+Output: {
+"label": "violation", 
+"evidence": "some people will gladly guzzle down shit."
+}
+
+Example 2:
+comment: "I hope you get 63 downvotes"
+norm: "no hate-speech, personal attacks or harassment"
+
+Output: {
+    "label": "violation",
+    "evidence": "I hope you get 63 downvotes"
+}
+
+Example 3:
+comment: "What’s up with all the rainbow stuff on your profile avatar? 🤔 \nYa I’ll refrain from taking your advice."
+norm: "treat people kindly"
+
+Output: {
+    "label": "violation",
+    "evidence": "What’s up with all the rainbow stuff on your profile avatar?"
 }
 """
 

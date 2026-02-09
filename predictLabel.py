@@ -1,9 +1,7 @@
 import pandas as pd
 from utils.predictLabelUtils import predictViolation, COT
-from utils.localPredictLabelUtils import localPredictViolation, localCOT
 import json, time, re, os
 from tqdm import tqdm
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -13,26 +11,17 @@ from sklearn.metrics import (
 )
 
 NUM_TESTS = 100
-BATCH_SIZE = 10
+BATCH_SIZE = 20
 
 # MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-PROMPT_TYPE = "ZeroShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
+PROMPT_TYPE = "FewShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
 USE_COT = False
-RUNNER = "local"         # ← choose: "local" or "openrouter"
-MODEL="qwen2.5:7b-instruct"
+RUNNER = "openrouter"         # ← choose: "local" or "openrouter"
+LOCAL_MODEL="qwen2.5:7b-instruct"
+MODEL = "meta-llama/llama-3.3-70b-instruct:free"
 
 safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
 path = f"results/{safe_model}/{PROMPT_TYPE}"
-
-# df = pd.read_csv('datasets/prepared_dataset.csv')
-
-# train_df, test_df = train_test_split(
-#     df,
-#     test_size=NUM_TESTS,         # constant number of tests
-#     stratify=df["true_label"] # stratify on true label so both dfs have even violations and non violations
-# )
-# test_df.to_csv("datasets/tests.csv")
-# train_df.to_csv("datasets/train.csv")
 
 df = pd.read_csv('datasets/tests.csv')
 

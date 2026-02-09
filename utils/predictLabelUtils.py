@@ -170,6 +170,44 @@ def parse_or_repair_json(content: str) -> Any:
         
         # 7) Fix extra closing bracket: [...] ] -> [...]
         s = re.sub(r"\]\s*\]\s*$", "]", s) 
+        # 8) Fix pattern:  "label": "comment_id": 23  ->  "comment_id": 23
+        s = re.sub(
+            r'"label"\s*:\s*"comment_id"\s*:\s*(\d+)',
+            r'"comment_id": \1',
+            s
+        )
+
+        # 9) Remove DUPLICATE "label" keys (keep the LAST one)
+        def dedupe_labels(match):
+            block = match.group(0)
+
+            labels = re.findall(r'"label"\s*:\s*"([^"]+)"', block)
+            if labels:
+                final_label = labels[-1]  # keep last one
+                # remove all existing label fields
+                block = re.sub(r'"label"\s*:\s*"[^"]+",?', "", block)
+                # re-insert exactly one label at the top
+                block = block.replace("{", f'{{\n  "label": "{final_label}",', 1)
+
+            return block
+
+        s = re.sub(r"\{[^{}]*\}", dedupe_labels, s, flags=re.DOTALL)
+
+       # 10) If it *looks like* a sequence of JSON objects, wrap in [ ]
+        stripped = s.strip()
+
+        # Case: starts with { and contains multiple objects
+        if stripped.startswith("{") and stripped.count("{") > 1:
+            # Remove a leading '[' if the model partially added one (defensive)
+            if stripped.startswith("["):
+                stripped = stripped[1:]
+
+            # Remove a trailing ']' if partially added
+            if stripped.endswith("]"):
+                stripped = stripped[:-1]
+
+            s = "[" + stripped + "]"
+
 
         return s
 

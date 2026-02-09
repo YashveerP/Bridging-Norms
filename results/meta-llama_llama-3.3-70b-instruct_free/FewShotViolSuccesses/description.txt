@@ -1,0 +1,1 @@
+The 3 shot prompt used in this was given 3 cases where the model succesfully classified a comment as violation 

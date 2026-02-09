@@ -12,12 +12,17 @@ from sklearn.metrics import (
     confusion_matrix
 )
 
-NUM_TESTS = 50
-MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-# MODEL="qwen2.5:7b-instruct-ZS"
+NUM_TESTS = 100
+BATCH_SIZE = 10
+
+# MODEL = "meta-llama/llama-3.3-70b-instruct:free"
+PROMPT_TYPE = "ZeroShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
+USE_COT = False
+RUNNER = "local"         # ← choose: "local" or "openrouter"
+MODEL="qwen2.5:7b-instruct"
 
 safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
-path = f"results/{safe_model}"
+path = f"results/{safe_model}/{PROMPT_TYPE}"
 
 # df = pd.read_csv('datasets/prepared_dataset.csv')
 
@@ -27,6 +32,7 @@ path = f"results/{safe_model}"
 #     stratify=df["true_label"] # stratify on true label so both dfs have even violations and non violations
 # )
 # test_df.to_csv("datasets/tests.csv")
+# train_df.to_csv("datasets/train.csv")
 
 df = pd.read_csv('datasets/tests.csv')
 
@@ -37,31 +43,50 @@ results = []
 y_true = []
 y_pred = []
 
-# for each sample
-for i in tqdm(range(NUM_TESTS)):
-    row = df.iloc[i]
+for start in tqdm(range(0, NUM_TESTS, BATCH_SIZE)):
+    batch_df = df.iloc[start:start + BATCH_SIZE]
 
-    # sleep to avoid too many requests error
-    # time.sleep(3)
-    # output = predictViolation(row["body"], row["norm"], MODEL)
-    output = localPredictViolation(row["body"], row["norm"])
-    # output = COT(row["body"], row["norm"], MODEL)
-    parsed = json.loads(output)
-    results.append({
-        "body": row["body"],
-        "norm": row["norm"],
-        "true_label": row["true_label"],
-        "pred_label": parsed["label"],
-        "evidence": parsed["evidence"],
-    })
-    y_true.append(row["true_label"])
-    y_pred.append(parsed["label"])
+    # build input in the format your prompt expects
+    batch_input = []
+    for idx, row in batch_df.iterrows():
+        batch_input.append({
+            "comment_id": int(idx),   # or just use enumerate if you prefer
+            "norm": row["norm"],
+            "comment": row["body"]
+        })
 
+    # SINGLE model call for the whole batch
+    output = predictViolation(batch_input, RUNNER, MODEL, PROMPT_TYPE, USE_COT)
 
-    # write to results.json at end of iteration in case later breaks
+    parsed_list = json.loads(output)  # this should be a LIST
+
+    for item in parsed_list:
+        comment_id = item["comment_id"]
+        comment = df.loc[comment_id, "body"]
+
+        if item["evidence"] and item["evidence"].strip() not in comment.replace("\r", ""):
+            item["evidence"] = ""
+
+    # match predictions back to rows
+    for item in parsed_list:
+        comment_id = item["comment_id"]
+        row = df.loc[comment_id]
+
+        results.append({
+            "body": row["body"],
+            "norm": row["norm"],
+            "true_label": row["true_label"],
+            "pred_label": item["label"],
+            "evidence": item["evidence"],
+        })
+        y_true.append(row["true_label"])
+        y_pred.append(item["label"])
+
+    # save progress
     os.makedirs(path, exist_ok=True)
     with open(f"{path}/results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2, ensure_ascii=False)
+
 
 # fraction of correct predicitons
 acc = accuracy_score(y_true, y_pred)
@@ -69,18 +94,30 @@ acc = accuracy_score(y_true, y_pred)
 # out of all positive predictions, what fraction was correct?
 # ability not to label as positive a sample that is negative
 # tp/(tp + fp)
-prec = precision_score(
+vioPrec = precision_score(
     y_true, y_pred,
     pos_label="violation",
+    zero_division=0
+)
+
+nonVioPrec = precision_score(
+    y_true, y_pred,
+    pos_label="non_violation",
     zero_division=0
 )
 
 # how many of the positive labels was the model able to predict?
 # ability to find all the positive samples
 # tp/(tp + fn)
-rec = recall_score(
+vioRec = recall_score(
     y_true, y_pred,
     pos_label="violation",
+    zero_division=0
+)
+
+nonVioRec = recall_score(
+    y_true, y_pred,
+    pos_label="non_violation",
     zero_division=0
 )
 
@@ -97,10 +134,14 @@ cm = confusion_matrix(y_true, y_pred, labels=["non_violation", "violation"])
 
 metrics = {
     "model": MODEL,
+    "prompt": PROMPT_TYPE,
     "num_tests": NUM_TESTS,
+    "batch_size": BATCH_SIZE,
     "accuracy": acc,
-    "precision": prec,
-    "recall": rec,
+    "violation_precision": vioPrec,
+    "non_violation_precision": nonVioPrec,
+    "violation_recall": vioRec,
+    "non_violation_recall": nonVioRec,
     "f1": f1,
     "confusion_matrix": cm.tolist()
 }

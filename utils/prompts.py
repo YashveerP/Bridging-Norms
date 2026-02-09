@@ -1,17 +1,29 @@
-def predictLabelMakePrompt(comment, norm):
-    return f"""
-NORM TO CHECK:
-\"\"\"{norm}\"\"\"
+import json
 
-COMMENT:
-\"\"\"{comment}\"\"\"
+def buildMessages(promptType, useCOT, batch):
+    # Choose system prompt
+    if promptType == "ZeroShot":
+        sysPrompt = predictLabelSysPromptZS
+    elif promptType == "OneShot":
+        sysPrompt = predictLabelSysPrompt1S
+    elif promptType == "FewShot":
+        sysPrompt = predictLabelSysPrompt3S
+    else:
+        raise ValueError(f"Unknown PROMPT: {promptType}")
 
-Respond with JSON in this format:
-{{
-  "label": "violation" or "non_violation",
-  "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
-}}
-"""
+    #choose whether or not to use COT
+    if useCOT:
+        return [
+        {"role": "system", "content": sysPrompt},
+        {"role": "user", "content": predictLabelMakePromptCOT1(norm)},
+        {"role": "user", "content": predictLabelMakePromptCOT2(comment)},
+        {"role": "user", "content": predictLabelMakePromptCOT3()}
+    ]
+    else:
+        return [
+            {"role": "system", "content": sysPrompt},
+            {"role": "user", "content": predictLabelMakePrompt(batch)}
+        ]
 
 predictLabelSysPromptZS = """
 You are a Reddit moderation classifier.
@@ -24,7 +36,7 @@ Rules:
 - Output MUST be valid JSON
 """
 
-predictLabelSysPromptOS = """
+predictLabelSysPrompt1S = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -35,12 +47,12 @@ Rules:
 - Output MUST be valid JSON
 
 Example:
-comment: "Just take a Xanax and quit crying"
-norm: "be respectful to others"
+comment: "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
+norm: "no hate-speech, personal attacks or harassment"
 
 Output: {
 "label": "violation", 
-"evidence": "quit crying"
+"evidence": "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
 }
 """
 
@@ -55,12 +67,12 @@ Rules:
 - Output MUST be valid JSON
 
 Example 1:
-comment: "Just take a Xanax and quit crying"
-norm: "be respectful to others"
+comment: "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
+norm: "no hate-speech, personal attacks or harassment"
 
 Output: {
 "label": "violation", 
-"evidence": "quit crying"
+"evidence": "$39.99 though? That’s a 20 fucking dollar game right there. It’s also almost 10 years old. You buy it, you become part of the reason why Nintendo gets to rip off everyone with their insane prices."
 }
 
 Example 2:
@@ -80,6 +92,36 @@ Output: {
     "label": "violation",
     "evidence": "a big, fat freak"
 }
+"""
+
+def predictLabelMakePrompt(content_to_check):
+    """
+    Input:
+        content_to_check: list of dicts:
+        [
+            {
+                "comment_id": XX,
+                "norm": "...",
+                "comment": "..."
+            },
+            ...
+        ]
+    """
+    return f"""
+For each of the following comments in **valid JSON format**:
+
+{json.dumps(content_to_check, indent=2, ensure_ascii=False)}
+
+Respond with a **single valid JSON array** in exactly this format:
+
+[
+  {{
+    "comment_id": XX,
+    "label": "violation" or "non_violation",
+    "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
+  }},
+  ...
+]
 """
 
 

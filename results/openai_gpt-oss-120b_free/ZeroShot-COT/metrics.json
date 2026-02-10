@@ -1,0 +1,22 @@
+{
+  "model": "openai/gpt-oss-120b:free",
+  "prompt": "ZeroShot-COT",
+  "num_tests": 100,
+  "batch_size": 20,
+  "accuracy": 0.9,
+  "violation_precision": 0.8936170212765957,
+  "non_violation_precision": 0.9056603773584906,
+  "violation_recall": 0.8936170212765957,
+  "non_violation_recall": 0.9056603773584906,
+  "f1": 0.8936170212765957,
+  "confusion_matrix": [
+    [
+      48,
+      5
+    ],
+    [
+      5,
+      42
+    ]
+  ]
+}

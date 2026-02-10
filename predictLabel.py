@@ -1,6 +1,6 @@
 import pandas as pd
-from utils.predictLabelUtils import predictViolation, COT
-import json, time, re, os
+from utils.predictLabelUtils import predictViolation
+import json, re, os
 from tqdm import tqdm
 from sklearn.metrics import (
     accuracy_score,
@@ -13,16 +13,17 @@ from sklearn.metrics import (
 NUM_TESTS = 100
 BATCH_SIZE = 20
 
-# MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-PROMPT_TYPE = "ZeroShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
+PROMPT_TYPE = "FewShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
 USE_COT = False
-PROMPT_NAME = PROMPT_TYPE + ("-COT" if USE_COT else "")
-RUNNER = "local"         # ← choose: "local" or "openrouter"
+EXTRAINFO = "5-SHOT"
+PROMPT_NAME = PROMPT_TYPE + ("-COT" if USE_COT else "") + EXTRAINFO
+RUNNER = "openrouter"         # ← choose: "local" or "openrouter"
 
 LOCAL_MODEL="qwen2.5:7b-instruct"
 OR_MODEL = "meta-llama/llama-3.3-70b-instruct:free"
-MODEL = LOCAL_MODEL
+MODEL = "openai/gpt-oss-120b:free"
 
+# MODEL = OR_MODEL
 safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
 path = f"results/{safe_model}/{PROMPT_NAME}"
 

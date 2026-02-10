@@ -1,4 +1,4 @@
-import requests, os, json, re, ollama
+import requests, os, json, re, ollama, time
 from dotenv import load_dotenv
 from utils.prompts import buildMessages
 
@@ -7,6 +7,7 @@ load_dotenv()
 # Get API key
 api_key = os.getenv("OPENROUTER_API_KEY")
 url = "https://openrouter.ai/api/v1/chat/completions"
+MAX_RETRIES= 3
 
 def predictViolation(batch: list[dict], runner, model, promptType, useCOT):
     if runner == "local":
@@ -25,22 +26,35 @@ def openRouterPredictViolation(batch: list[dict], model, promptType, useCOT):
     data = {
         "model": model,
         "messages": buildMessages(promptType, useCOT, batch),
-        "max_tokens": 1000,
+        "max_tokens": 5000,
         "temperature": 0.0
     }
 
-    response = requests.post(url, headers=headers, json=data)
-    
-    if response.status_code != 200:
-        print("ERROR RESPONSE:", response.text)
-        response.raise_for_status()
+    for attempt in range(MAX_RETRIES):
+        response = requests.post(url, headers=headers, json=data)
 
-    result = response.json()
-    msg = result["choices"][0]["message"]
-    content = msg.get("content", "").strip()
-    parsed_list = parse_or_repair_json(content)
+        # ----- HANDLE 429 (rate limit) -----
+        if response.status_code == 429:
+            wait_time = 2 ** attempt  # exponential backoff: 1,2,4,8,16...
+            print(f"429 received. Retrying in {wait_time}s (attempt {attempt+1}/{MAX_RETRIES})")
+            time.sleep(wait_time)
+            continue
 
-    return json.dumps(parsed_list, ensure_ascii=False)
+        # ----- Other errors: fail immediately -----
+        if response.status_code != 200:
+            print("ERROR RESPONSE:", response.text)
+            response.raise_for_status()
+
+        # ----- Success path -----
+        result = response.json()
+        msg = result["choices"][0]["message"]
+        content = msg.get("content", "").strip()
+
+        parsed_list = parse_or_repair_json(content)
+        return json.dumps(parsed_list, ensure_ascii=False)
+
+    # If we exhausted retries
+    raise RuntimeError(f"Failed after {MAX_RETRIES} retries due to repeated 429 errors")
 
 def localPredictViolation(batch: list[dict], model, promptType, useCOT):
     response = ollama.chat(
@@ -58,45 +72,6 @@ def localPredictViolation(batch: list[dict], model, promptType, useCOT):
     return json.dumps(parsed_list, ensure_ascii=False)
 
 
-def COT(comment, norm, model):
-    messages = [
-        {"role": "system", "content": predictLabelSysPromptCOT},
-        {"role": "user", "content": predictLabelMakePromptCOT1(norm)},
-        {"role": "user", "content": predictLabelMakePromptCOT2(comment)},
-        {"role": "user", "content": predictLabelMakePromptCOT3()}
-    ]
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-
-    # Request body
-    data = {
-        "model": model,
-        "messages": messages,
-        "max_tokens": 1000,
-        "temperature": 0.0
-    }
-
-    response = requests.post(url, headers=headers, json=data)
-    
-    if response.status_code != 200:
-        print("ERROR RESPONSE:", response.text)
-        response.raise_for_status()
-
-    result = response.json()
-    msg = result["choices"][0]["message"]
-
-    content = msg.get("content", "").strip()
-
-    parsed = parse_or_repair_json(content)
-
-    # Extra safety: evidence must exist in comment
-    if parsed["evidence"] and parsed["evidence"] not in comment:
-        parsed["evidence"] = ""
-
-    return json.dumps(parsed, ensure_ascii=False)
 
 
 import json

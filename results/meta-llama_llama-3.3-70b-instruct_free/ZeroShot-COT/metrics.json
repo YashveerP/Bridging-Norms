@@ -1,0 +1,22 @@
+{
+  "model": "meta-llama/llama-3.3-70b-instruct:free",
+  "prompt": "ZeroShot-COT",
+  "num_tests": 100,
+  "batch_size": 20,
+  "accuracy": 0.85,
+  "violation_precision": 0.9210526315789473,
+  "non_violation_precision": 0.8064516129032258,
+  "violation_recall": 0.7446808510638298,
+  "non_violation_recall": 0.9433962264150944,
+  "f1": 0.8235294117647058,
+  "confusion_matrix": [
+    [
+      50,
+      3
+    ],
+    [
+      12,
+      35
+    ]
+  ]
+}

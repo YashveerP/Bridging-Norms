@@ -1,0 +1,22 @@
+{
+  "model": "qwen2.5:7b-instruct",
+  "prompt": "FewShot",
+  "num_tests": 100,
+  "batch_size": 20,
+  "accuracy": 0.82,
+  "violation_precision": 0.8536585365853658,
+  "non_violation_precision": 0.7966101694915254,
+  "violation_recall": 0.7446808510638298,
+  "non_violation_recall": 0.8867924528301887,
+  "f1": 0.7954545454545454,
+  "confusion_matrix": [
+    [
+      47,
+      6
+    ],
+    [
+      12,
+      35
+    ]
+  ]
+}

@@ -19,29 +19,32 @@ def getRandomNormForSubreddit(subreddit_id):
 
 # create a csv of the data set with each nv comment assigned to a community norm
 def generatePreparedDataSet():
-    
     eval_rows = []
+    i = 0
     for _, row in data.iterrows():
         norm = row["target_reason"]
         if row["label"] == "non_violation":
             norm = getRandomNormForSubreddit(row["subreddit_id"])
 
         eval_rows.append({
+            "comment_id": i,
             "body": row["body"],
             "norm": norm,
             "true_label": row["label"]
         })
+        i += 1
 
     eval_df = pd.DataFrame(eval_rows)
     eval_df.to_csv("prepared_dataset.csv", index=False)
 
+# create a balanced trainTestSplit and save to files
 def makeNewTrainTestSplit(numTests):
     df = pd.read_csv('datasets/prepared_dataset.csv')
 
-    train_df, test_df = train_test_split(
-        df,
-        test_size=numTests,         
-        stratify=df["true_label"] # stratify on true label so both dfs have even violations and non violations
-    )
-    test_df.to_csv("datasets/tests.csv")
-    train_df.to_csv("datasets/train.csv")
+    violations = df[df["label"] == "violation"]
+    nonViolations = df[df["label"] == "non_violation"]
+    testDF = pd.concat(violations.sample(50), nonViolations.sample(50))
+    trainDF = df.drop(testDF.index)
+
+    testDF.to_csv("datasets/tests.csv")
+    trainDF.to_csv("datasets/train.csv")

@@ -1,6 +1,16 @@
 import requests, os, json, re, ollama, time
 from dotenv import load_dotenv
 from utils.prompts import buildMessages
+import pandas as pd
+import json, re, os
+from tqdm import tqdm
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix
+)
 
 # Load variables from .env
 load_dotenv()
@@ -8,12 +18,126 @@ load_dotenv()
 api_key = os.getenv("OPENROUTER_API_KEY")
 url = "https://openrouter.ai/api/v1/chat/completions"
 MAX_RETRIES= 3
+NUM_TESTS = 100
+BATCH_SIZE = 20
 
-def predictViolation(batch: list[dict], runner, model, promptType, useCOT):
-    if runner == "local":
-        return localPredictViolation(batch, model, promptType, useCOT)
+def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
+    promptName = promptType + ("-COT" if useCOT else "") + extraInfo
+    safe_model = re.sub(r'[<>:"/\\|?*]', '_', model)
+    path = f"results/{promptName}"
+
+    df = pd.read_csv('datasets/tests.csv')
+
+    # go through each violated comment and store json
+    results = []
+
+    # store true and prediceted labels
+    y_true = []
+    y_pred = []
+
+    for start in tqdm(range(0, NUM_TESTS, BATCH_SIZE)):
+        batch_df = df.iloc[start:start + BATCH_SIZE]
+
+        # build input in the format your prompt expects
+        batch_input = []
+        for idx, row in batch_df.iterrows():
+            batch_input.append({
+                "comment_id": int(idx),   # or just use enumerate if you prefer
+                "norm": row["norm"],
+                "comment": row["body"]
+            })
+
+        # SINGLE model call for the whole batch
+        if runner == "local":
+            output = localPredictViolation(batch_input, model, promptType, useCOT)
+        else:
+            output =  openRouterPredictViolation(batch_input, model, promptType, useCOT)
+
+        parsed_list = json.loads(output)  # this should be a LIST
+
+        for item in parsed_list:
+            comment_id = item["comment_id"]
+            comment = df.loc[comment_id, "body"]
+
+            if item["evidence"] and item["evidence"].strip() not in comment.replace("\r", ""):
+                item["evidence"] = ""
+
+        # match predictions back to rows
+        for item in parsed_list:
+            comment_id = item["comment_id"]
+            row = df.loc[comment_id]
+
+            results.append({
+                "body": row["body"],
+                "norm": row["norm"],
+                "true_label": row["true_label"],
+                "pred_label": item["label"],
+                "evidence": item["evidence"],
+            })
+            y_true.append(row["true_label"])
+            y_pred.append(item["label"])
+
+        # save progress
+        os.makedirs(f"{path}/{safe_model}", exist_ok=True)
+        with open(f"{path}/{safe_model}/results.json", "w", encoding="utf-8") as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+
+
+    # fraction of correct predicitons
+    acc = accuracy_score(y_true, y_pred)
+
+    vioPrec = precision_score(
+        y_true, y_pred,
+        pos_label="violation",
+        zero_division=0
+    )
+
+    nonVioPrec = precision_score(
+        y_true, y_pred,
+        pos_label="non_violation",
+        zero_division=0
+    )
+
+    vioRec = recall_score(
+        y_true, y_pred,
+        pos_label="violation",
+        zero_division=0
+    )
+
+    nonVioRec = recall_score(
+        y_true, y_pred,
+        pos_label="non_violation",
+        zero_division=0
+    )
+
+    cm = confusion_matrix(y_true, y_pred, labels=["non_violation", "violation"])
+
+    metrics = {
+        "model": model,
+        "prompt": promptName,
+        "num_tests": NUM_TESTS,
+        "batch_size": BATCH_SIZE,
+        "accuracy": acc,
+        "violation_precision": vioPrec,
+        "non_violation_precision": nonVioPrec,
+        "violation_recall": vioRec,
+        "non_violation_recall": nonVioRec,
+        "confusion_matrix": cm.tolist()
+    }
+
+    # Load existing metrics
+    if os.path.exists(f"{path}/metrics.json"):
+        with open(f"{path}/metrics.json", "r", encoding="utf-8") as f:
+            all_metrics = json.load(f)
     else:
-        return openRouterPredictViolation(batch, model, promptType, useCOT)
+        all_metrics = []
+
+    # Append new run
+    all_metrics.append(metrics)
+
+    # Save back
+    with open(f"{path}/metrics.json", "w", encoding="utf-8") as f:
+        json.dump(all_metrics, f, indent=2)
 
 def openRouterPredictViolation(batch: list[dict], model, promptType, useCOT):
         

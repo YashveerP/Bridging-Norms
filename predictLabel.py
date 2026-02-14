@@ -1,6 +1,6 @@
 import pandas as pd
 from utils.predictLabelUtils import predictViolation
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 PROMPT_TYPE = "ZeroShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
@@ -13,10 +13,40 @@ LOCAL_MODEL="qwen2.5:7b-instruct"
 LLAMA3 = "meta-llama/llama-3.3-70b-instruct:free"
 GPT_OSS = "openai/gpt-oss-120b:free"
 
-MODEL = LOCAL_MODEL
+EXPERIMENTS = [
+    {
+        "runner": "local",
+        "model": LOCAL_MODEL,
+        "prompt_type": PROMPT_TYPE,
+        "use_cot": USE_COT,
+        "extra_info": ""
+    },
+    {
+        "runner": "openrouter",
+        "model": LLAMA3,
+        "prompt_type": PROMPT_TYPE,
+        "use_cot": USE_COT,
+        "extra_info": ""
+    },
+    {
+        "runner": "openrouter",
+        "model": GPT_OSS,
+        "prompt_type": PROMPT_TYPE,
+        "use_cot": USE_COT,
+        "extra_info": ""
+    }
+]
 
-predictViolation("local", LOCAL_MODEL, PROMPT_TYPE, USE_COT, EXTRAINFO)
-# predictViolation("openrouter", LLAMA3, PROMPT_TYPE, USE_COT, EXTRAINFO)
-# predictViolation("openrouter", GPT_OSS, PROMPT_TYPE, USE_COT, EXTRAINFO)
+def run_experiment(exp):
+    print(f"Starting: {exp['model']}")
+    return predictViolation(
+        exp["runner"],
+        exp["model"],
+        exp["prompt_type"],
+        exp["use_cot"],
+        exp["extra_info"]
+    )
 
+with ThreadPoolExecutor(max_workers=3) as executor:
+    executor.map(run_experiment, EXPERIMENTS)
 

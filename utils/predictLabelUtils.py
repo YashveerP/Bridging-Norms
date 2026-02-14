@@ -1,6 +1,6 @@
 import requests, os, json, re, ollama, time
 from dotenv import load_dotenv
-from utils.prompts import buildMessages
+from prompts.prompts import buildMessages
 import pandas as pd
 import json, re, os
 from tqdm import tqdm
@@ -24,7 +24,7 @@ BATCH_SIZE = 20
 def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
     promptName = promptType + ("-COT" if useCOT else "") + extraInfo
     safe_model = re.sub(r'[<>:"/\\|?*]', '_', model)
-    path = f"results/{promptName}"
+    path = f"results/{promptName}/{safe_model}"
 
     df = pd.read_csv('datasets/tests.csv')
 
@@ -35,7 +35,7 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
     y_true = []
     y_pred = []
 
-    for start in tqdm(range(0, NUM_TESTS, BATCH_SIZE)):
+    for start in tqdm(range(0, NUM_TESTS, BATCH_SIZE), desc=safe_model, position=0):
         batch_df = df.iloc[start:start + BATCH_SIZE]
 
         # build input in the format your prompt expects
@@ -78,8 +78,8 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
             y_pred.append(item["label"])
 
         # save progress
-        os.makedirs(f"{path}/{safe_model}", exist_ok=True)
-        with open(f"{path}/{safe_model}/results.json", "w", encoding="utf-8") as f:
+        os.makedirs(f"{path}", exist_ok=True)
+        with open(f"{path}/results.json", "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
 
 
@@ -125,19 +125,9 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
         "confusion_matrix": cm.tolist()
     }
 
-    # Load existing metrics
-    if os.path.exists(f"{path}/metrics.json"):
-        with open(f"{path}/metrics.json", "r", encoding="utf-8") as f:
-            all_metrics = json.load(f)
-    else:
-        all_metrics = []
-
-    # Append new run
-    all_metrics.append(metrics)
-
-    # Save back
+    
     with open(f"{path}/metrics.json", "w", encoding="utf-8") as f:
-        json.dump(all_metrics, f, indent=2)
+        json.dump(metrics, f, indent=2)
 
 def openRouterPredictViolation(batch: list[dict], model, promptType, useCOT):
         

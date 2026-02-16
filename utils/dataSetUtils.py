@@ -35,15 +35,15 @@ def generatePreparedDataSet():
         i += 1
 
     eval_df = pd.DataFrame(eval_rows)
-    eval_df.to_csv("prepared_dataset.csv", index=False)
+    eval_df.to_csv("datasets/prepared_dataset.csv", index=False)
 
 # create a balanced trainTestSplit and save to files
 def makeNewTrainTestSplit(numTests):
     df = pd.read_csv('datasets/prepared_dataset.csv')
 
-    violations = df[df["label"] == "violation"]
-    nonViolations = df[df["label"] == "non_violation"]
-    testDF = pd.concat(violations.sample(50), nonViolations.sample(50))
+    violations = df[df["true_label"] == "violation"]
+    nonViolations = df[df["true_label"] == "non_violation"]
+    testDF = pd.concat([violations.sample(int(numTests/2)), nonViolations.sample(int(numTests/2))])
     trainDF = df.drop(testDF.index)
 
     testDF.to_csv("datasets/tests.csv")

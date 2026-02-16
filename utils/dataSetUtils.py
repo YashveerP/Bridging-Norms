@@ -1,7 +1,5 @@
 import random
-from dotenv import load_dotenv
 import pandas as pd
-from sklearn.model_selection import train_test_split
 # dataset
 data = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
 subredditToNorms = (
@@ -20,6 +18,7 @@ def getRandomNormForSubreddit(subreddit_id):
 # create a csv of the data set with each nv comment assigned to a community norm
 def generatePreparedDataSet():
     eval_rows = []
+    # Assign all comments comment id's based off of index
     i = 0
     for _, row in data.iterrows():
         norm = row["target_reason"]
@@ -43,8 +42,13 @@ def makeNewTrainTestSplit(numTests):
 
     violations = df[df["true_label"] == "violation"]
     nonViolations = df[df["true_label"] == "non_violation"]
+    # concat 50 random violation and nonviolation samples
     testDF = pd.concat([violations.sample(int(numTests/2)), nonViolations.sample(int(numTests/2))])
+    # shuffle around all the samples
+    testDF = testDF.sample(frac=1).reset_index(drop=True)
+    # take out test samples and put them as training samples
     trainDF = df.drop(testDF.index)
+    trainDF = trainDF.sample(frac=1).reset_index(drop=True)
 
-    testDF.to_csv("datasets/tests.csv")
-    trainDF.to_csv("datasets/train.csv")
+    testDF.to_csv("datasets/tests.csv", index=False)
+    trainDF.to_csv("datasets/train.csv", index=False)

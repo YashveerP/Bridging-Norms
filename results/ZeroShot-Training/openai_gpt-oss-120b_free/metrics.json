@@ -1,0 +1,21 @@
+{
+  "model": "openai/gpt-oss-120b:free",
+  "prompt": "ZeroShot",
+  "num_tests": 200,
+  "batch_size": 20,
+  "accuracy": 0.815,
+  "violation_precision": 0.8705882352941177,
+  "non_violation_precision": 0.7739130434782608,
+  "violation_recall": 0.74,
+  "non_violation_recall": 0.89,
+  "confusion_matrix": [
+    [
+      89,
+      11
+    ],
+    [
+      26,
+      74
+    ]
+  ]
+}

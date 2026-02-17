@@ -6,8 +6,10 @@ def buildMessages(promptType, useCOT, batch):
         sysPrompt = predictLabelSysPromptZS
     elif promptType == "OneShot":
         sysPrompt = predictLabelSysPrompt1S
-    elif promptType == "FewShot":
+    elif promptType == "ThreeShot":
         sysPrompt = predictLabelSysPrompt3S
+    elif promptType == "SixShot":
+        sysPrompt = predictLabelSysPrompt6S
     else:
         raise ValueError(f"Unknown PROMPT: {promptType}")
 
@@ -56,82 +58,6 @@ Output: {
 }
 """
 
-predictLabelSysPrompt3SSuccessfulExamples = """
-You are a Reddit moderation classifier.
-
-Your task is to decide whether a comment violates a given norm.
-
-Rules:
-- Use ONLY the comment text
-- Count as a violation if their is explicit evidence
-- Output MUST be valid JSON
-
-Example 1:
-comment:  "Screw your stupid Rick roll.  And it wasn’t even the right song….get bent bro lol"
-norm: "no hate-speech, personal attacks or harassment"
-
-Output: {
-"label": "violation", 
-"evidence": "Screw your stupid Rick roll.  And it wasn’t even the right song….get bent bro lol"
-}
-
-Example 2:
-comment: "Dude save your typing, it's not worth it.  Haziko is God's most brain damaged Destiny redditor.  \n\n&amp;#x200B;\n\nEvery time he loses an argument (see: often) he goes \"I'm not gonna continue\", repeats his debunked low-tier points, and declares himself the winner.  He's literally downvote-on-sight tier."
-norm: "no uncivil behavior, witchhunting, etc"
-
-Output: {
-    "label": "violation",
-    "evidence": "Haziko is God's most brain damaged Destiny redditor."
-}
-
-Example 3:
-comment: "The \"man\" is a lying piss-baby who can't accept that they're wrong."
-norm: "no uncivil behavior, witchhunting, etc"
-
-Output: {
-    "label": "violation",
-    "evidence": "The \"man\" is a lying piss-baby who can't accept that they're wrong."
-}
-"""
-
-predictLabelSysPrompt3SNEW = """
-You are a Reddit moderation classifier.
-
-Your task is to decide whether a comment violates a given norm.
-
-Rules:
-- Use ONLY the comment text
-- Count as a violation if their is explicit evidence
-- Output MUST be valid JSON
-
-Example 1:
-comment:  "&gt;I never understood peoples outrage with the game.\n\nMaybe because the game was unfinished? theres no 8th gym (clearly unfinished), 7th gym has no city and is a  corridor. the monotonous elevator ride that was clearly rushed. routes that take 5 seconds to cross. \n\nwild area is completely devoid of content except pop in models. \n\nstory clearly getting cut as things happen off screen.\n\nthey also LIED about not reusing models. all the old models are reused.\n\nI mean, yea its great. some people will gladly guzzle down shit. thats great. some of us expect a finished game when we pay full price. Sword and Shield is a 15 dollar game."
-norm: "no hate-speech, personal attacks or harassment"
-
-Output: {
-"label": "violation", 
-"evidence": "some people will gladly guzzle down shit."
-}
-
-Example 2:
-comment: "I hope you get 63 downvotes"
-norm: "no hate-speech, personal attacks or harassment"
-
-Output: {
-    "label": "violation",
-    "evidence": "I hope you get 63 downvotes"
-}
-
-Example 3:
-comment: "What’s up with all the rainbow stuff on your profile avatar? 🤔 \nYa I’ll refrain from taking your advice."
-norm: "treat people kindly"
-
-Output: {
-    "label": "violation",
-    "evidence": "What’s up with all the rainbow stuff on your profile avatar?"
-}
-"""
-
 predictLabelSysPrompt3S = """
 You are a Reddit moderation classifier.
 
@@ -143,35 +69,111 @@ Rules:
 - Output MUST be valid JSON
 
 Example 1:
-comment:  "&gt;I never understood peoples outrage with the game.\n\nMaybe because the game was unfinished? theres no 8th gym (clearly unfinished), 7th gym has no city and is a  corridor. the monotonous elevator ride that was clearly rushed. routes that take 5 seconds to cross. \n\nwild area is completely devoid of content except pop in models. \n\nstory clearly getting cut as things happen off screen.\n\nthey also LIED about not reusing models. all the old models are reused.\n\nI mean, yea its great. some people will gladly guzzle down shit. thats great. some of us expect a finished game when we pay full price. Sword and Shield is a 15 dollar game."
-norm: "no hate-speech, personal attacks or harassment"
+comment: "You seem like a nice person"
+norm: "personal attack",
 
 Output: {
 "label": "violation", 
-"evidence": "some people will gladly guzzle down shit."
+"evidence": "You seem like a nice person"
 }
 
 Example 2:
-comment: "I hope you get 63 downvotes"
-norm: "no hate-speech, personal attacks or harassment"
+comment: "&gt;I'm glad the 'white male' role is being disregarded again to represent our current society.\n\nSure buddy. He isn't a representation of current society. He represents a checklist.",
+norm: "be nice"
 
 Output: {
     "label": "violation",
-    "evidence": "I hope you get 63 downvotes"
+    "evidence": "Sure buddy. He isn't a representation of current society. He represents a checklist."
 }
 
 Example 3:
-comment: "What’s up with all the rainbow stuff on your profile avatar? 🤔 \nYa I’ll refrain from taking your advice."
-norm: "treat people kindly"
+comment: "The BBC hired Chinballs since he was down with their diversity and inclusion doctrine. That was the kicker for who the next showrunner was."
+norm: "be nice"
 
 Output: {
     "label": "violation",
-    "evidence": "What’s up with all the rainbow stuff on your profile avatar?"
+    "evidence": "The BBC hired Chinballs since he was down with their diversity and inclusion doctrine."
+}
+"""
+
+predictLabelSysPrompt3SOG = """
+You are a Reddit moderation classifier.
+
+Your task is to decide whether a comment violates a given norm.
+
+Rules:
+- Use ONLY the comment text
+- Count as a violation if their is explicit evidence
+- Output MUST be valid JSON
+
+Example 1:
+comment: "Transphobic? I think you'll find they're more afraid of me 🗿"
+norm: "no uncivil behavior, witch hunting, etc"
+
+Output: {
+"label": "violation", 
+"evidence": "Transphobic? I think you'll find they're more afraid of me"
+}
+
+Example 2:
+comment: "Go touch grass maybe? You don’t need every new thing. It’s been two days."
+norm: "no uncivil behavior, witchhunting, etc"
+
+Output: {
+    "label": "violation",
+    "evidence": "Go touch grass maybe? You don’t need every new thing. It’s been two days."
+}
+
+Example 3:
+comment: "Thanks for posting this, I needed it badly. Will never slap my bro's ass again."
+norm: "not nice"
+
+Output: {
+    "label": "violation",
+    "evidence": "Will never slap my bro's ass again."
+}
+"""
+
+predictLabelSysPrompt6S = """
+You are a Reddit moderation classifier.
+
+Your task is to decide whether a comment violates a given norm.
+
+Rules:
+- Use ONLY the comment text
+- Count as a violation if their is explicit evidence
+- Output MUST be valid JSON
+
+Example 1:
+comment: "Transphobic? I think you'll find they're more afraid of me 🗿"
+norm: "no uncivil behavior, witch hunting, etc"
+
+Output: {
+"label": "violation", 
+"evidence": "Transphobic? I think you'll find they're more afraid of me"
+}
+
+Example 2:
+comment: "Um are you seriously removing MY COMMENT AND NOT THEIRS. What a joke bye bye lame sub"
+norm: "be respectful to others"
+
+Output: {
+    "label": "non_violation",
+    "evidence": ""
+}
+
+Example 3:
+comment: "Thanks for posting this, I needed it badly. Will never slap my bro's ass again."
+norm: "not nice"
+
+Output: {
+    "label": "violation",
+    "evidence": "Will never slap my bro's ass again."
 }
 
 Example 4:
-comment: "Lol not you claiming blackness to speak with such authority about racism towards asians. Lol. Step back my latin looking, live behind a security fenced private mansion, but will evoke the black card for limited beneficial situation, redditor. . . Lol"
-norm: "trolling"
+comment: "No, the graph was shared, not this meme. Just because you do not agree means you are looking for any reason to remove it?"
+norm: "be friendly"
 
 Output: {
     "label": "non_violation",
@@ -179,8 +181,17 @@ Output: {
 }
 
 Example 5:
-comment: "If he is lucky he will get to see the police throw their speakers off the roof."
-norm: "post in a civilized manner"
+comment: "Go touch grass maybe? You don’t need every new thing. It’s been two days."
+norm: "no uncivil behavior, witchhunting, etc"
+
+Output: {
+    "label": "violation",
+    "evidence": "Go touch grass maybe? You don’t need every new thing. It’s been two days."
+}
+
+Example 6:
+comment: "What the hell is with people giving us a C draft grade?\n\nDolphins haters!!! :|"
+norm: "incivility, overly cruel or hostile"
 
 Output: {
     "label": "non_violation",

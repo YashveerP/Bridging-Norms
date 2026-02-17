@@ -1,0 +1,21 @@
+{
+  "model": "qwen2.5:7b-instruct",
+  "prompt": "ZeroShot",
+  "num_tests": 100,
+  "batch_size": 20,
+  "accuracy": 0.8571428571428571,
+  "violation_precision": 0.8620689655172413,
+  "non_violation_precision": 0.8461538461538461,
+  "violation_recall": 0.9259259259259259,
+  "non_violation_recall": 0.7333333333333333,
+  "confusion_matrix": [
+    [
+      11,
+      4
+    ],
+    [
+      2,
+      25
+    ]
+  ]
+}

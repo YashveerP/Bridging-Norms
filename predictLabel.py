@@ -4,9 +4,9 @@ from utils.dataSetUtils import generatePreparedDataSet, makeNewTrainTestSplit
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
-PROMPT_TYPE = "ZeroShot"      # ← choose: "ZeroShot", "OneShot", "FewShot"
+PROMPT_TYPE = "ThreeShot"      # ← choose: "ZeroShot", "OneShot", "ThreeShot", "SixShot"
 USE_COT = False
-EXTRAINFO = ""
+EXTRAINFO = "-Prescriptive"
 PROMPT_NAME = PROMPT_TYPE + ("-COT" if USE_COT else "") + EXTRAINFO
 
 LOCAL_MODEL="qwen2.5:7b-instruct"
@@ -19,21 +19,21 @@ EXPERIMENTS = [
         "model": LOCAL_MODEL,
         "prompt_type": PROMPT_TYPE,
         "use_cot": USE_COT,
-        "extra_info": ""
+        "extra_info": EXTRAINFO
     },
     {
         "runner": "openrouter",
         "model": LLAMA3,
         "prompt_type": PROMPT_TYPE,
         "use_cot": USE_COT,
-        "extra_info": ""
+        "extra_info": EXTRAINFO
     },
     {
         "runner": "openrouter",
         "model": GPT_OSS,
         "prompt_type": PROMPT_TYPE,
         "use_cot": USE_COT,
-        "extra_info": ""
+        "extra_info": EXTRAINFO
     }
 ]
 

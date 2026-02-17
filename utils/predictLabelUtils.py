@@ -17,7 +17,7 @@ load_dotenv()
 api_key = os.getenv("OPENROUTER_API_KEY")
 url = "https://openrouter.ai/api/v1/chat/completions"
 MAX_RETRIES= 3
-NUM_TESTS = 200
+NUM_TESTS = 100
 BATCH_SIZE = 20
 
 def predictViolation(runner, model, promptType, useCOT, extraInfo=""):

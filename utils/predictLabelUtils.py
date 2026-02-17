@@ -25,7 +25,7 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
     safe_model = re.sub(r'[<>:"/\\|?*]', '_', model)
     path = f"results/{promptName}/{safe_model}"
 
-    df = pd.read_csv('datasets/train.csv')
+    df = pd.read_csv('datasets/test.csv')
     dict = df.set_index("comment_id").to_dict("index")
 
     # go through each violated comment and store json

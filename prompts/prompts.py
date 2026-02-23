@@ -7,7 +7,7 @@ def buildMessages(promptType, useCOT, batch):
     elif promptType == "OneShot":
         sysPrompt = predictLabelSysPrompt1S
     elif promptType == "ThreeShot":
-        sysPrompt = predictLabelSysPrompt3S
+        sysPrompt = predictLabelSysPrompt3S_Restrictive
     elif promptType == "SixShot":
         sysPrompt = predictLabelSysPrompt6S
     else:
@@ -58,7 +58,7 @@ Output: {
 }
 """
 
-predictLabelSysPrompt3S = """
+predictLabelSysPrompt3S_Prescriptive = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -96,7 +96,7 @@ Output: {
 }
 """
 
-predictLabelSysPrompt3SOG = """
+predictLabelSysPrompt3S_Restrictive = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -221,7 +221,6 @@ Respond with a **single valid JSON array** in exactly this format:
 
 [
   {{
-    "comment_id": XX,
     "label": "violation" or "non_violation",
     "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
   }},

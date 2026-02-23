@@ -16,7 +16,7 @@ load_dotenv()
 # Get API key
 api_key = os.getenv("OPENROUTER_API_KEY")
 url = "https://openrouter.ai/api/v1/chat/completions"
-MAX_RETRIES= 3
+MAX_RETRIES = 5
 NUM_TESTS = 100
 BATCH_SIZE = 20
 
@@ -41,13 +41,13 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
 
         # build input in the format the prompt expects
         batch_input = []
+        commentIDs = []
         for idx, row in batch_df.iterrows():
             batch_input.append({
-                "comment_id": row["comment_id"], 
                 "norm": row["norm"],
                 "comment": row["body"]
             })
-
+            commentIDs.append(row["comment_id"])
         # get output from model
         if runner == "local":
             output = localPredictViolation(batch_input, model, promptType, useCOT)
@@ -57,8 +57,10 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
         # load the json data into a list
         parsed_list = json.loads(output)
 
+        i = 0
         for item in parsed_list:
-            comment_id = item["comment_id"]
+            comment_id = commentIDs[i]
+            i += 1
             row = dict[comment_id]
 
             # if the item had no evidence or invalid evidence replace with empyty quotes
@@ -210,9 +212,9 @@ from typing import Any
 def parse_or_repair_json(content: str) -> Any:
     """
     Robust parser for messy LLM JSON output.
-
-    Returns:
-        list[dict]
+    Returns either:
+      - a list of dicts, or
+      - a single dict
     """
 
     if not content or not content.strip():
@@ -220,35 +222,29 @@ def parse_or_repair_json(content: str) -> Any:
 
     text = content.strip()
 
-    # --------------------------------------------------
-    # STEP 1: Extract likely JSON block (non-greedy)
-    # --------------------------------------------------
-    array_match = re.search(r"\[.*?\]", text, re.DOTALL)
-    obj_match = re.search(r"\{.*?\}", text, re.DOTALL)
+    
+    # 1: Extract the most plausible JSON block
+    # Prefer arrays, but fall back to single objects.
+    array_match = re.search(r"\[.*\]", text, re.DOTALL)
+    obj_match = re.search(r"\{.*\}", text, re.DOTALL)
 
     if array_match:
         json_str = array_match.group(0)
     elif obj_match:
         json_str = obj_match.group(0)
     else:
-        raise ValueError(f"No JSON found in model output:\n{text}")
+        raise ValueError(f"No JSON found in model output: {repr(text)}")
 
-    # --------------------------------------------------
-    # STEP 2: Repair common LLM issues
-    # --------------------------------------------------
+    # STEP 2: Normalize common LLM mistakes
     def repair(s: str) -> str:
-
-        # 0) Fix invalid escapes like \. \, \( etc.
-        s = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', s)
-
-        # 1) Unquoted labels
+        # 1) Fix unquoted labels
         s = re.sub(
             r'"label"\s*:\s*(violation|non_violation)',
             r'"label": "\1"',
             s
         )
 
-        # 2) SINGLE quoted evidence
+        # 2) Convert SINGLE-quoted evidence
         s = re.sub(
             r'"evidence"\s*:\s*\'(.*?)\'',
             lambda m: '"evidence": ' + json.dumps(m.group(1)),
@@ -256,7 +252,7 @@ def parse_or_repair_json(content: str) -> Any:
             flags=re.DOTALL
         )
 
-        # 3) TRIPLE quoted evidence
+        # 3) Convert trple-quoted evidence
         s = re.sub(
             r'"evidence"\s*:\s*"""(.*?)"""',
             lambda m: '"evidence": ' + json.dumps(m.group(1)),
@@ -264,105 +260,107 @@ def parse_or_repair_json(content: str) -> Any:
             flags=re.DOTALL
         )
 
-        # 4) Remove trailing commas
+        # 4) Remove trailing commas before } or ]
         s = re.sub(r",\s*([}\]])", r"\1", s)
 
-        # 5) Normalize smart quotes
+        # 5) Normalize weird quotes (smart quotes)
         s = s.replace("“", '"').replace("”", '"').replace("’", "'")
 
-        # 6) Fix accidental double braces
+        # 6) Fix accidental double-braces
         s = re.sub(r"\[\s*\{\s*\{", "[{", s)
         s = re.sub(r"\}\s*\}\s*\]", "}]", s)
 
-        # 7) Extra closing bracket
-        s = re.sub(r"\]\s*\]\s*$", "]", s)
+        # 7) Fix extra closing bracket
+        s = re.sub(r"\]\s*\]\s*$", "]", s) 
 
-        # 8) Fix broken key pattern
-        s = re.sub(
-            r'"label"\s*:\s*"comment_id"\s*:\s*(\d+)',
-            r'"comment_id": \1',
-            s
-        )
+        # 9) Remove DUPLICATE "label" keys
+        def dedupe_labels(match):
+            block = match.group(0)
 
-        # 9) Fix missing quote on comment_id
-        s = re.sub(
-            r'(?<!")comment_id"\s*:',
-            r'"comment_id":',
-            s
-        )
+            labels = re.findall(r'"label"\s*:\s*"([^"]+)"', block)
+            if labels:
+                final_label = labels[-1]  # keep last one
+                # remove all existing label fields
+                block = re.sub(r'"label"\s*:\s*"[^"]+",?', "", block)
+                # re-insert exactly one label at the top
+                block = block.replace("{", f'{{\n  "label": "{final_label}",', 1)
 
-        # 10) Wrap objects in [ ] if model forgot array
+            return block
+
+        s = re.sub(r"\{[^{}]*\}", dedupe_labels, s, flags=re.DOTALL)
+
+       # 10) If it *looks like* a sequence of JSON objects, wrap in [ ]
         stripped = s.strip()
-        if stripped.startswith("{") and "},{" in stripped:
+
+        # Case: starts with { and contains multiple objects
+        if stripped.startswith("{") and stripped.count("{") > 1:
+            # Remove a leading '[' if the model partially added one (defensive)
+            if stripped.startswith("["):
+                stripped = stripped[1:]
+
+            # Remove a trailing ']' if partially added
+            if stripped.endswith("]"):
+                stripped = stripped[:-1]
+
             s = "[" + stripped + "]"
 
         return s
 
-    # --------------------------------------------------
-    # STEP 3: Try parsing normally
-    # --------------------------------------------------
-    attempts = [
-        json_str,
-        repair(json_str),
-        repair(repair(json_str))
-    ]
+    
+    #3: Try parsing
+    attempts = []
+
+    # Try raw
+    attempts.append(json_str)
+
+    # Try once repaired
+    attempts.append(repair(json_str))
+
+    # Try double-repaired
+    attempts.append(repair(repair(json_str)))
 
     last_error = None
-
-    for candidate in attempts:
+    for i, candidate in enumerate(attempts):
         try:
             parsed = json.loads(candidate)
 
+            # If the model returned a single object, wrap in a list
             if isinstance(parsed, dict):
                 parsed = [parsed]
-
-            # normalize output
-            for item in parsed:
-                if isinstance(item, dict):
-                    item.setdefault("comment_id", None)
-                    item.setdefault("label", "non_violation")
-                    item.setdefault("evidence", "")
 
             return parsed
 
         except Exception as e:
             last_error = e
+            # keep trying
 
-    # --------------------------------------------------
-    # STEP 4 ⭐ SALVAGE MODE
-    # Parse objects individually if whole batch fails
-    # --------------------------------------------------
+    # 4: try to salvage
     objects = re.findall(r"\{.*?\}", attempts[-1], re.DOTALL)
 
-    salvaged = []
+    if not objects:
+        raise ValueError("No JSON objects found during salvage attempt.")
 
-    for obj in objects:
+    results = []
+
+    for i, obj in enumerate(objects):
         try:
             fixed = repair(obj)
             parsed_obj = json.loads(fixed)
+            results.append(parsed_obj)
 
-            parsed_obj.setdefault("comment_id", None)
-            parsed_obj.setdefault("label", "non_violation")
-            parsed_obj.setdefault("evidence", "")
+        except Exception as e:
+            print("JSON PARSE FAILURE")
+            print(f"Object index: {i}")
+            print(f"Error: {e}")
+            print(f"Raw object:\n{obj}")
+            raise
 
-            salvaged.append(parsed_obj)
+    #Enforce batch size
+    if len(results) != BATCH_SIZE:
+        raise ValueError(
+            f"Expected {BATCH_SIZE} items, got {len(results)}"
+        )
 
-        except Exception:
-            continue
-
-    if salvaged:
-        print(f"⚠️ Salvaged {len(salvaged)} items from broken batch")
-        return salvaged
-
-    # --------------------------------------------------
-    # STEP 5: Fail with useful error
-    # --------------------------------------------------
-    raise ValueError(
-        "Could not parse JSON even after robust repair.\n"
-        f"Last attempted string:\n{repr(attempts[-1])}\n"
-        f"Last error: {last_error}"
-    )
-
-
+    return results
 
 

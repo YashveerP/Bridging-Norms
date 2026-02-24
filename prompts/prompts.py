@@ -7,7 +7,7 @@ def buildMessages(promptType, useCOT, batch):
     elif promptType == "OneShot":
         sysPrompt = oneShot
     elif promptType == "ThreeShot":
-        sysPrompt = ThreeShotRestrictive
+        sysPrompt = ThreeShotPrescriptiveNV
     elif promptType == "SixShot":
         sysPrompt = sixShotPrescriptiveAndRestrictive
     else:
@@ -34,7 +34,7 @@ Your task is to decide whether a comment violates a given norm.
 
 Rules:
 - Use ONLY the comment text
-- Count as a violation if their is explicit evidence
+- Count as a violation if there is explicit evidence
 - Output MUST be valid JSON
 """
 
@@ -45,7 +45,7 @@ Your task is to decide whether a comment violates a given norm.
 
 Rules:
 - Use ONLY the comment text
-- Count as a violation if their is explicit evidence
+- Count as a violation if there is explicit evidence
 - Output MUST be valid JSON
 
 Example:
@@ -65,7 +65,7 @@ Your task is to decide whether a comment violates a given norm.
 
 Rules:
 - Use ONLY the comment text
-- Count as a violation if their is explicit evidence
+- Count as a violation if there is explicit evidence
 - Output MUST be valid JSON
 
 Example 1:
@@ -103,7 +103,7 @@ Your task is to decide whether a comment violates a given norm.
 
 Rules:
 - Use ONLY the comment text
-- Count as a violation if their is explicit evidence
+- Count as a violation if there is explicit evidence
 - Output MUST be valid JSON
 
 Example 1:
@@ -141,7 +141,7 @@ Your task is to decide whether a comment violates a given norm.
 
 Rules:
 - Use ONLY the comment text
-- Count as a violation if their is explicit evidence
+- Count as a violation if there is explicit evidence
 - Output MUST be valid JSON
 
 Example 1:
@@ -258,7 +258,6 @@ Based on all previous steps, respond with a **single valid JSON array** in exact
 
 [
   {{
-    "comment_id": XX,
     "label": "violation" or "non_violation",
     "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
   }},
@@ -274,7 +273,7 @@ Your task is to decide whether a comment violates a given norm.
 
 Rules:
 - Use ONLY the comment text
-- Count as a violation if their is explicit evidence
+- Count as a violation if there is explicit evidence
 """
 
 
@@ -286,7 +285,7 @@ Your task is to decide whether a comment violates a given norm.
 
 Rules:
 - Use ONLY the comment text
-- Count as a violation if their is explicit evidence
+- Count as a violation if there is explicit evidence
 - Output MUST be valid JSON
 
 Example 1:
@@ -341,5 +340,44 @@ norm: "not nice"
 Output: {
     "label": "violation",
     "evidence": "Will never slap my bro's ass again."
+}
+"""
+
+
+ThreeShotPrescriptiveNV = """
+You are a Reddit moderation classifier.
+
+Your task is to decide whether a comment violates a given norm.
+
+Rules:
+- Use ONLY the comment text
+- Count as a violation if there is explicit evidence
+- Output MUST be valid JSON
+
+Example 1:
+comment: "Um are you seriously removing MY COMMENT AND NOT THEIRS. What a joke bye bye lame sub"
+norm: "be respectful to others"
+
+Output: {
+    "label": "non_violation",
+    "evidence": ""
+}
+
+Example 2:
+comment: "No, the graph was shared, not this meme. Just because you do not agree means you are looking for any reason to remove it?"
+norm: "be friendly"
+
+Output: {
+    "label": "non_violation",
+    "evidence": ""
+}
+
+Example 3:
+comment: "What the hell is with people giving us a C draft grade?\n\nDolphins haters!!! :|"
+norm: "incivility, overly cruel or hostile"
+
+Output: {
+    "label": "non_violation",
+    "evidence": ""
 }
 """

@@ -30,6 +30,7 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
 
     # go through each violated comment and store json
     results = []
+    rawOutput = []
 
     # store true and prediceted labels
     y_true = []
@@ -53,7 +54,7 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
             output = localPredictViolation(batch_input, model, promptType, useCOT)
         else:
             output =  openRouterPredictViolation(batch_input, model, promptType, useCOT)
-
+        rawOutput.append(output)
         # load the json data into a list
         parsed_list = json.loads(output)
 
@@ -83,6 +84,8 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
         os.makedirs(f"{path}", exist_ok=True)
         with open(f"{path}/results.json", "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
+        with open(f"{path}/output.json", "w", encoding="utf-8") as f:
+            json.dump(rawOutput, f, indent=2, ensure_ascii=False)
 
 
     # metrics

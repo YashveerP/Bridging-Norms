@@ -3,13 +3,13 @@ import json
 def buildMessages(promptType, useCOT, batch):
     # Choose system prompt
     if promptType == "ZeroShot":
-        sysPrompt = predictLabelSysPromptZS
+        sysPrompt = zeroShot
     elif promptType == "OneShot":
-        sysPrompt = predictLabelSysPrompt1S
+        sysPrompt = oneShot
     elif promptType == "ThreeShot":
-        sysPrompt = predictLabelSysPrompt3S_Restrictive
+        sysPrompt = ThreeShotRestrictive
     elif promptType == "SixShot":
-        sysPrompt = predictLabelSysPrompt6S
+        sysPrompt = sixShotPrescriptiveAndRestrictive
     else:
         raise ValueError(f"Unknown PROMPT: {promptType}")
 
@@ -17,17 +17,17 @@ def buildMessages(promptType, useCOT, batch):
     if useCOT:
         return [
         {"role": "system", "content": sysPrompt},
-        {"role": "user", "content": predictLabelMakePromptCOT1(batch)},
-        {"role": "user", "content": predictLabelMakePromptCOT2(batch)},
-        {"role": "user", "content": predictLabelMakePromptCOT3(batch)}
+        {"role": "user", "content": makePromptCOT1(batch)},
+        {"role": "user", "content": makePromptCOT2(batch)},
+        {"role": "user", "content": makePromptCOT3(batch)}
     ]
     else:
         return [
             {"role": "system", "content": sysPrompt},
-            {"role": "user", "content": predictLabelMakePrompt(batch)}
+            {"role": "user", "content": makePrompt(batch)}
         ]
 
-predictLabelSysPromptZS = """
+zeroShot = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -38,7 +38,7 @@ Rules:
 - Output MUST be valid JSON
 """
 
-predictLabelSysPrompt1S = """
+oneShot = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -58,7 +58,7 @@ Output: {
 }
 """
 
-predictLabelSysPrompt3S_Prescriptive = """
+ThreeShotPrescriptive = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -96,7 +96,7 @@ Output: {
 }
 """
 
-predictLabelSysPrompt3S_Restrictive = """
+ThreeShotRestrictive = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -134,7 +134,7 @@ Output: {
 }
 """
 
-predictLabelSysPrompt6S = """
+SixShotVAndNV = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -199,7 +199,7 @@ Output: {
 }
 """
 
-def predictLabelMakePrompt(content_to_check):
+def makePrompt(content_to_check):
     """
     Input:
         content_to_check: list of dicts:
@@ -229,7 +229,7 @@ Respond with a **single valid JSON array** in exactly this format:
 """
 
 
-def predictLabelMakePromptCOT1(content_to_check):
+def makePromptCOT1(content_to_check):
     return f"""
 For each of the following comments, reason independently:
 
@@ -238,7 +238,7 @@ For each of the following comments, reason independently:
 In ONE sentence, restate what the norm prohibits in your own words.
 """
 
-def predictLabelMakePromptCOT2(content_to_check):
+def makePromptCOT2(content_to_check):
     return f"""
 For each of the following comments, reason independently:
 
@@ -248,7 +248,7 @@ Identify any parts of the comment that could be relevant to the norm.
 Quote them verbatim. If nothing is relevant, say: "No relevant text found."
 """
 
-def predictLabelMakePromptCOT3(content_to_check):
+def makePromptCOT3(content_to_check):
     return f"""
 For each of the following comments, reason independently:
 
@@ -267,7 +267,7 @@ Based on all previous steps, respond with a **single valid JSON array** in exact
 """
 
 
-predictLabelSysPromptCOT = """
+chainOfThought = """
 You are a Reddit moderation classifier.
 
 Your task is to decide whether a comment violates a given norm.
@@ -275,4 +275,71 @@ Your task is to decide whether a comment violates a given norm.
 Rules:
 - Use ONLY the comment text
 - Count as a violation if their is explicit evidence
+"""
+
+
+
+sixShotPrescriptiveAndRestrictive = """
+You are a Reddit moderation classifier.
+
+Your task is to decide whether a comment violates a given norm.
+
+Rules:
+- Use ONLY the comment text
+- Count as a violation if their is explicit evidence
+- Output MUST be valid JSON
+
+Example 1:
+comment: "You seem like a nice person"
+norm: "personal attack",
+
+Output: {
+"label": "violation", 
+"evidence": "You seem like a nice person"
+}
+
+Example 2:
+comment: "Transphobic? I think you'll find they're more afraid of me 🗿"
+norm: "no uncivil behavior, witch hunting, etc"
+
+Output: {
+"label": "violation", 
+"evidence": "Transphobic? I think you'll find they're more afraid of me"
+}
+
+Example 3:
+comment: "&gt;I'm glad the 'white male' role is being disregarded again to represent our current society.\n\nSure buddy. He isn't a representation of current society. He represents a checklist.",
+norm: "be nice"
+
+Output: {
+    "label": "violation",
+    "evidence": "Sure buddy. He isn't a representation of current society. He represents a checklist."
+}
+
+Example 4:
+comment: "Go touch grass maybe? You don’t need every new thing. It’s been two days."
+norm: "no uncivil behavior, witchhunting, etc"
+
+Output: {
+    "label": "violation",
+    "evidence": "Go touch grass maybe? You don’t need every new thing. It’s been two days."
+}
+
+Example 5:
+comment: "The BBC hired Chinballs since he was down with their diversity and inclusion doctrine. That was the kicker for who the next showrunner was."
+norm: "be nice"
+
+Output: {
+    "label": "violation",
+    "evidence": "The BBC hired Chinballs since he was down with their diversity and inclusion doctrine."
+}
+
+Example 6:
+comment: "Thanks for posting this, I needed it badly. Will never slap my bro's ass again."
+norm: "not nice"
+
+Output: {
+    "label": "violation",
+    "evidence": "Will never slap my bro's ass again."
+}
 """

@@ -31,6 +31,7 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
     # go through each violated comment and store json
     results = []
     rawOutput = []
+    numSucceses = 0
 
     # store true and prediceted labels
     y_true = []
@@ -56,6 +57,10 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
         rawOutput.append(output)
         # load the json data into a list
         parsed_list = json.loads(output)
+        numSucceses += len(parsed_list)
+        ##
+        if len(parsed_list) != BATCH_SIZE:
+            print(f"WARNING: {model} outputed {len(parsed_list)}/{BATCH_SIZE} results for batch #{int(start/BATCH_SIZE) + 1}")
 
         for item in parsed_list:
             comment_id = item["comment_id"]
@@ -113,11 +118,13 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
     )
 
     cm = confusion_matrix(y_true, y_pred, labels=["non_violation", "violation"])
+    #print out message saying the results are invalid if not all tests were able to run
 
     metrics = {
         "model": model,
         "prompt": promptName,
         "num_tests": NUM_TESTS,
+        "num_successes": numSucceses,
         "batch_size": BATCH_SIZE,
         "accuracy": acc,
         "violation_precision": vioPrec,

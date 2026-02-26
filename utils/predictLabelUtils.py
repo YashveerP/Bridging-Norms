@@ -42,13 +42,12 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
 
         # build input in the format the prompt expects
         batch_input = []
-        commentIDs = []
         for idx, row in batch_df.iterrows():
             batch_input.append({
+                "comment_id": row["comment_id"],
                 "norm": row["norm"],
                 "comment": row["body"]
             })
-            commentIDs.append(row["comment_id"])
         # get output from model
         if runner == "local":
             output = localPredictViolation(batch_input, model, promptType, useCOT)
@@ -58,15 +57,13 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
         # load the json data into a list
         parsed_list = json.loads(output)
 
-        i = 0
         for item in parsed_list:
-            comment_id = commentIDs[i]
-            i += 1
+            comment_id = item["comment_id"]
             row = dict[comment_id]
 
             # if the item had no evidence or invalid evidence replace with empyty quotes
-            if item["evidence"] and item["evidence"].strip() not in row["body"].replace("\r", ""):
-                item["evidence"] = ""
+            # if item["evidence"] and item["evidence"].strip() not in row["body"].replace("\r", ""):
+            #     item["evidence"] = ""
 
             # append to results
             results.append({

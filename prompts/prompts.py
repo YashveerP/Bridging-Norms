@@ -54,6 +54,7 @@ Respond with a **single valid JSON array** in exactly this format:
 
 [
   {{
+    "comment_id": XX,
     "label": "violation" or "non_violation",
     "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
   }},
@@ -91,6 +92,7 @@ Based on all previous steps, respond with a **single valid JSON array** in exact
 
 [
   {{
+    "comment_id": XX,
     "label": "violation" or "non_violation",
     "evidence": "EXACT substring copied verbatim from the COMMENT, with newlines escaped as \\n"
   }},

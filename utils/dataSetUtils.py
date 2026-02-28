@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 # dataset
+SEED = 21
 data = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
 subredditToNorms = (
     data[data["label"] == "violation"]
@@ -43,12 +44,12 @@ def makeNewTrainTestSplit(numTests):
     violations = df[df["true_label"] == "violation"]
     nonViolations = df[df["true_label"] == "non_violation"]
     # concat 50 random violation and nonviolation samples
-    testDF = pd.concat([violations.sample(int(numTests/2)), nonViolations.sample(int(numTests/2))])
+    testDF = pd.concat([violations.sample(int(numTests/2), random_state=SEED), nonViolations.sample(int(numTests/2), random_state=SEED)])
     # shuffle around all the samples
-    testDF = testDF.sample(frac=1).reset_index(drop=True)
+    testDF = testDF.sample(frac=1, random_state=SEED).reset_index(drop=True)
     # take out test samples and put them as training samples
     trainDF = df.drop(testDF.index)
-    trainDF = trainDF.sample(frac=1).reset_index(drop=True)
+    trainDF = trainDF.sample(frac=1, random_state=SEED).reset_index(drop=True)
 
-    testDF.to_csv("datasets/tests.csv", index=False)
-    trainDF.to_csv("datasets/train.csv", index=False)
+    testDF.to_csv("datasets/tests2.csv", index=False)
+    trainDF.to_csv("datasets/train2.csv", index=False)

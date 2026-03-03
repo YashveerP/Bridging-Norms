@@ -1,7 +1,7 @@
 import json
 import re
 from typing import Any
-def parse_or_repair_json(content: str) -> Any:
+def parse_or_repair_json(content: str, path) -> Any:
     """
     Robust parser for messy LLM JSON output.
     Returns either:

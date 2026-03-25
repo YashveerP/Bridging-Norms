@@ -3,31 +3,21 @@ from prompts.ZeroShot import *
 from prompts.OneShot import *
 from prompts.ThreeShot import *
 from prompts.SixShot import *
+from defs import *
 
-def buildMessages(promptType, useCOT, batch):
-    # Choose system prompt
-    if promptType == "ZeroShot":
-        sysPrompt = zeroShot
-    elif promptType == "OneShot":
-        sysPrompt = oneShot
-    elif promptType == "ThreeShot":
-        sysPrompt = ThreeShotRestrictive
-    elif promptType == "SixShot":
-        sysPrompt = sixShotPrescriptiveAndRestrictive
-    else:
-        raise ValueError(f"Unknown PROMPT: {promptType}")
+def buildMessages(prompt, batch):
 
     #choose whether or not to use COT
-    if useCOT:
+    if prompt.useCOT:
         return [
-        {"role": "system", "content": sysPrompt},
+        {"role": "system", "content": prompt.prompt},
         {"role": "user", "content": makePromptCOT1(batch)},
         {"role": "user", "content": makePromptCOT2(batch)},
         {"role": "user", "content": makePromptCOT3(batch)}
     ]
     else:
         return [
-            {"role": "system", "content": sysPrompt},
+            {"role": "system", "content": prompt.prompt},
             {"role": "user", "content": makePrompt(batch)}
         ]
 

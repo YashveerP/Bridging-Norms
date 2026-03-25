@@ -145,7 +145,7 @@ def parse_or_repair_json(content: str, path) -> Any:
 
             log_lines.append(f"Attempt {i}: SUCCESS")
             log_lines.append(f"Repairs: {repairs}")
-
+            
             with open(f"{path}/repair_log.txt", "a") as f:
                 f.write("\n".join(log_lines) + "\n")
 

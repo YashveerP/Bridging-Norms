@@ -10,20 +10,20 @@ from sklearn.metrics import (
     recall_score,
     confusion_matrix
 )
+from param import *
+from defs import *
 
 # Load variables from .env
 load_dotenv()
 # Get API key
 api_key = os.getenv("OPENROUTER_API_KEY")
 url = "https://openrouter.ai/api/v1/chat/completions"
-MAX_RETRIES = 4
-NUM_TESTS = 100
-BATCH_SIZE = 20
 
-def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
-    promptName = promptType + ("-COT" if useCOT else "") + extraInfo
-    safe_model = re.sub(r'[<>:"/\\|?*]', '_', model)
-    path = f"results/{promptName}/{safe_model}"
+
+def predictViolation(model, prompt, directory):
+    safe_model = re.sub(r'[<>:"/\\|?*]', '_', model.name)
+    path = f"results/{directory}/{safe_model}"
+    os.makedirs(f"{path}", exist_ok=True)
 
     df = pd.read_csv('datasets/tests.csv')
     dict = df.set_index("comment_id").to_dict("index")
@@ -50,10 +50,10 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
                 "comment": row["body"]
             })
         # get output from model
-        if runner == "local":
-            output = localPredictViolation(batch_input, model, promptType, useCOT)
+        if model.runner == "local":
+            output = localPredictViolation(batch_input, model, prompt)
         else:
-            output =  openRouterPredictViolation(batch_input, model, promptType, useCOT)
+            output =  openRouterPredictViolation(batch_input, model, prompt)
         rawOutput.append(output)
         # load the json data into a list
 
@@ -62,15 +62,11 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
         numSucceses += len(parsed_list)
         ##
         if len(parsed_list) != BATCH_SIZE:
-            print(f"WARNING: {model} outputed {len(parsed_list)}/{BATCH_SIZE} results for batch #{int(start/BATCH_SIZE) + 1}")
+            print(f"WARNING: {model.name} outputed {len(parsed_list)}/{BATCH_SIZE} results for batch #{int(start/BATCH_SIZE) + 1}")
 
         for item in parsed_list:
             comment_id = item["comment_id"]
             row = dict[comment_id]
-
-            # if the item had no evidence or invalid evidence replace with empyty quotes
-            # if item["evidence"] and item["evidence"].strip() not in row["body"].replace("\r", ""):
-            #     item["evidence"] = ""
 
             # append to results
             results.append({
@@ -85,7 +81,6 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
             y_pred.append(item["label"])
 
         # save progress
-        os.makedirs(f"{path}", exist_ok=True)
         with open(f"{path}/results.json", "w", encoding="utf-8") as f:
             json.dump(results, f, indent=2, ensure_ascii=False)
         with open(f"{path}/output.json", "w", encoding="utf-8") as f:
@@ -123,8 +118,8 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
     #print out message saying the results are invalid if not all tests were able to run
 
     metrics = {
-        "model": model,
-        "prompt": promptName,
+        "model": model.name,
+        "directory": directory,
         "num_tests": NUM_TESTS,
         "num_successes": numSucceses,
         "batch_size": BATCH_SIZE,
@@ -139,7 +134,7 @@ def predictViolation(runner, model, promptType, useCOT, extraInfo=""):
     with open(f"{path}/metrics.json", "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)
 
-def openRouterPredictViolation(batch: list[dict], model, promptType, useCOT):
+def openRouterPredictViolation(batch: list[dict], model, prompt):
         
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -147,8 +142,8 @@ def openRouterPredictViolation(batch: list[dict], model, promptType, useCOT):
     }
 
     data = {
-        "model": model,
-        "messages": buildMessages(promptType, useCOT, batch),
+        "model": model.name,
+        "messages": buildMessages(prompt, batch),
         "max_tokens": 5000,
         "temperature": 0.0
     }
@@ -180,18 +175,15 @@ def openRouterPredictViolation(batch: list[dict], model, promptType, useCOT):
         content = msg.get("content", "").strip()
 
         return content
-        # parsed_list = parse_or_repair_json(content)
-        # return json.dumps(parsed_list, ensure_ascii=False)
 
     # If we exhausted attempts
     raise RuntimeError(f"Failed after {MAX_RETRIES} retries due to repeated errors")
 
-def localPredictViolation(batch, model, promptType, useCOT):
-
+def localPredictViolation(batch, model, prompt):
     try:
         response = ollama.chat(
-        model=model,
-        messages=buildMessages(promptType, useCOT, batch),
+        model=model.name,
+        messages= buildMessages(prompt, batch),
             options={
                 "temperature": 0.0,
                 "max_tokens": 1000
@@ -205,14 +197,9 @@ def localPredictViolation(batch, model, promptType, useCOT):
         
         return content
 
-        # parsed_list = parse_or_repair_json(content)
-        # return json.dumps(parsed_list, ensure_ascii=False)
-
     except Exception as e:
         print(f"localPredictViolation failed")
         print("Error:", e)
-
-    raise RuntimeError("Local model retries exhausted")
 
 
 

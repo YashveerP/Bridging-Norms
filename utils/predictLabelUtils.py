@@ -1,6 +1,5 @@
 import requests, os, json, re, ollama, time
 from dotenv import load_dotenv
-from prompts.prompts import buildMessages
 from utils.jsonParser import parse_or_repair_json
 import pandas as pd
 from tqdm import tqdm
@@ -20,7 +19,7 @@ api_key = os.getenv("OPENROUTER_API_KEY")
 url = "https://openrouter.ai/api/v1/chat/completions"
 
 
-def predictViolation(model, prompt, directory):
+async def predictViolation(model, prompt, directory):
     safe_model = re.sub(r'[<>:"/\\|?*]', '_', model.name)
     path = f"results/{directory}/{safe_model}"
     os.makedirs(f"{path}", exist_ok=True)
@@ -53,7 +52,8 @@ def predictViolation(model, prompt, directory):
         if model.runner == "local":
             output = localPredictViolation(batch_input, model, prompt)
         else:
-            output =  openRouterPredictViolation(batch_input, model, prompt)
+            async with aiohttp.ClientSession() as session:
+                output = await openRouterPredictViolation(batch_input, model, prompt, session)
         rawOutput.append(output)
         # load the json data into a list
 
@@ -134,56 +134,56 @@ def predictViolation(model, prompt, directory):
     with open(f"{path}/metrics.json", "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2)
 
-def openRouterPredictViolation(batch: list[dict], model, prompt):
+# def openRouterPredictViolation(batch: list[dict], model, prompt):
         
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
+#     headers = {
+#         "Authorization": f"Bearer {api_key}",
+#         "Content-Type": "application/json"
+#     }
 
-    data = {
-        "model": model.name,
-        "messages": buildMessages(prompt, batch),
-        "max_tokens": 5000,
-        "temperature": 0.0
-    }
+#     data = {
+#         "model": model.name,
+#         "messages": prompt.buildMessages(prompt, batch),
+#         "max_tokens": 5000,
+#         "temperature": 0.0
+#     }
 
-    # give multiple attempts for model to correctly output
-    for attempt in range(MAX_RETRIES):
-        try:
-            response = requests.post(url, headers=headers, json=data)
-        except requests.exceptions.RequestException as e:
-            print(f"Request failed (attempt {attempt+1}/{MAX_RETRIES})")
-            print(e)
-            time.sleep(2 ** attempt)
-            continue
+#     # give multiple attempts for model to correctly output
+#     for attempt in range(MAX_RETRIES):
+#         try:
+#             response = requests.post(url, headers=headers, json=data)
+#         except requests.exceptions.RequestException as e:
+#             print(f"Request failed (attempt {attempt+1}/{MAX_RETRIES})")
+#             print(e)
+#             time.sleep(2 ** attempt)
+#             continue
 
-        # 429 error
-        if response.status_code == 429:
-            wait_time = 2 ** attempt  # exponential backoff: 1,2,4,8,16...
-            print(f"429 received. Retrying in {wait_time}s (attempt {attempt+1}/{MAX_RETRIES})")
-            time.sleep(wait_time)
-            continue
+#         # 429 error
+#         if response.status_code == 429:
+#             wait_time = 2 ** attempt  # exponential backoff: 1,2,4,8,16...
+#             print(f"429 received. Retrying in {wait_time}s (attempt {attempt+1}/{MAX_RETRIES})")
+#             time.sleep(wait_time)
+#             continue
 
-        # Fail on other errors
-        if response.status_code != 200:
-            print("ERROR RESPONSE:", response.text)
-            response.raise_for_status()
+#         # Fail on other errors
+#         if response.status_code != 200:
+#             print("ERROR RESPONSE:", response.text)
+#             response.raise_for_status()
 
-        result = response.json()
-        msg = result["choices"][0]["message"]
-        content = msg.get("content", "").strip()
+#         result = response.json()
+#         msg = result["choices"][0]["message"]
+#         content = msg.get("content", "").strip()
 
-        return content
+#         return content
 
-    # If we exhausted attempts
-    raise RuntimeError(f"Failed after {MAX_RETRIES} retries due to repeated errors")
+#     # If we exhausted attempts
+    # raise RuntimeError(f"Failed after {MAX_RETRIES} retries due to repeated errors")
 
 def localPredictViolation(batch, model, prompt):
     try:
         response = ollama.chat(
         model=model.name,
-        messages= buildMessages(prompt, batch),
+        messages= prompt.buildMessages(prompt, batch),
             options={
                 "temperature": 0.0,
                 "max_tokens": 1000
@@ -203,3 +203,48 @@ def localPredictViolation(batch, model, prompt):
 
 
 
+import aiohttp
+import asyncio
+
+async def openRouterPredictViolation(batch: list[dict], model, prompt, session):
+
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "model": model.name,
+        "messages": prompt.buildMessages(prompt, batch),
+        "max_tokens": 5000,
+        "temperature": 0.0
+    }
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            async with session.post(url, headers=headers, json=data) as response:
+
+                # 429 handling
+                if response.status == 429:
+                    wait_time = 2 ** attempt
+                    print(f"429 retry in {wait_time}s (attempt {attempt+1})")
+                    await asyncio.sleep(wait_time)
+                    continue
+
+                if response.status != 200:
+                    text = await response.text()
+                    print("ERROR RESPONSE:", text)
+                    response.raise_for_status()
+
+                result = await response.json()
+                msg = result["choices"][0]["message"]
+                content = msg.get("content", "").strip()
+
+                return content
+
+        except aiohttp.ClientError as e:
+            print(f"Request failed (attempt {attempt+1}/{MAX_RETRIES})")
+            print(e)
+            await asyncio.sleep(2 ** attempt)
+
+    raise RuntimeError(f"Failed after {MAX_RETRIES} retries")

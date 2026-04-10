@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Callable
 
 @dataclass
 class model:
@@ -8,6 +9,7 @@ class model:
 
 @dataclass
 class prompt:
-    """Class for keeping track prompts and whether they use Chain of Thought(false by default)."""
-    prompt: str
+    """Class for keeping track prompts and the funciton to build their user prompt."""
+    sysPrompt: str
+    buildMessages: Callable[[str], str]
     useCOT: bool = False

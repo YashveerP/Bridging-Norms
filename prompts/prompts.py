@@ -10,14 +10,14 @@ def buildMessages(prompt, batch):
     #choose whether or not to use COT
     if prompt.useCOT:
         return [
-        {"role": "system", "content": prompt.prompt},
+        {"role": "system", "content": prompt.sysPrompt},
         {"role": "user", "content": makePromptCOT1(batch)},
         {"role": "user", "content": makePromptCOT2(batch)},
         {"role": "user", "content": makePromptCOT3(batch)}
     ]
     else:
         return [
-            {"role": "system", "content": prompt.prompt},
+            {"role": "system", "content": prompt.sysPrompt},
             {"role": "user", "content": makePrompt(batch)}
         ]
 

@@ -1,3 +1,6 @@
+import ast
+import csv
+import json
 import random
 import pandas as pd
 # dataset
@@ -53,3 +56,66 @@ def makeNewTrainTestSplit(numTests):
 
     testDF.to_csv("datasets/tests2.csv", index=False)
     trainDF.to_csv("datasets/train2.csv", index=False)
+
+
+def getCommunityRules(subreddit_id):
+        df = pd.read_csv(
+            'datasets/removed_comments_rules.csv',
+            skipinitialspace=True
+        )
+
+        # Fix column names
+        df.columns = df.columns.str.strip()
+
+        # # Fix values
+        df["subreddit_id"] = df["subreddit_id"].str.strip()
+
+        rules = df[df["subreddit_id"] == subreddit_id].iloc[0].rules
+        rules = ast.literal_eval(rules)
+    
+        simplified = []
+        for r in rules:
+            name = r.get("short_name", "").strip()
+            reason = r.get("violation_reason", "").strip()
+            
+            simplified.append(f"{name}: {reason}")
+        
+        return simplified
+
+def getCommunity(subredditID):
+    df = pd.read_csv('datasets/subreddits-descriptions.csv')
+    return df[df["name"] == subredditID].iloc[0]
+
+def printTopCommuntiies():
+    df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
+
+    print(df["subreddit_id"].value_counts().head(5))
+
+def getCommunityComments(subredditID):
+    df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
+    communityComments = df[df["subreddit_id"] == subredditID]
+    # communityComments = communityComments[communityComments.columns.difference(['subreddit_id', 'assigned_rule_cluster'])]
+    return communityComments
+
+
+# create a csv of the data set with each nv comment assigned to a community norm
+def generatePreparedDataSet(dataFrame):
+    eval_rows = []
+    # Assign all comments comment id's based off of index
+    i = 0
+    for _, row in dataFrame.iterrows():
+        norm = row["target_reason"]
+        if row["label"] == "non_violation":
+            norm = getRandomNormForSubreddit(row["subreddit_id"])
+
+        eval_rows.append({
+            "comment_id": i,
+            "body": row["body"],
+            "norm": norm,
+            "true_label": row["label"]
+        })
+        i += 1
+
+    eval_df = pd.DataFrame(eval_rows)
+    return eval_df
+    # eval_df.to_csv(f"datasets/{fileName}.csv", index=False)

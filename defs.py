@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import pandas as pd
 from typing import Callable
 
 @dataclass
@@ -11,5 +12,5 @@ class model:
 class prompt:
     """Class for keeping track prompts and the funciton to build their user prompt."""
     sysPrompt: str
-    buildMessages: Callable[[str], str]
-    useCOT: bool = False
+    userPrompt: Callable[[str], str]
+    tests: pd.DataFrame

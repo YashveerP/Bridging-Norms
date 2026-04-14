@@ -6,23 +6,13 @@ from prompts.SixShot import *
 from defs import *
 
 def buildMessages(prompt, batch):
-
-    #choose whether or not to use COT
-    if prompt.useCOT:
-        return [
-        {"role": "system", "content": prompt.sysPrompt},
-        {"role": "user", "content": makePromptCOT1(batch)},
-        {"role": "user", "content": makePromptCOT2(batch)},
-        {"role": "user", "content": makePromptCOT3(batch)}
-    ]
-    else:
         return [
             {"role": "system", "content": prompt.sysPrompt},
-            {"role": "user", "content": makePrompt(batch)}
+            {"role": "user", "content": prompt.userPrompt(batch)}
         ]
 
 
-def makePrompt(content_to_check):
+def predictViolationUserPrompt(content_to_check):
     """
     Input:
         content_to_check: list of dicts:

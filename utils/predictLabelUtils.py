@@ -39,7 +39,7 @@ async def predictViolation(model, prompt, directory):
         y_pred = []
 
         # go through tests in batches and with progress bar
-        for start in tqdm(range(0, NUM_TESTS, BATCH_SIZE), desc=safe_model, position=0):
+        for start in tqdm(range(0, NUM_TESTS, BATCH_SIZE), desc=directory, position=0):
             batch_df = df.iloc[start:start + BATCH_SIZE]
 
             # build input in the format the prompt expects

@@ -1,0 +1,22 @@
+{
+  "model": "qwen3:14b",
+  "directory": "sixShotPrescriptiveAndRestrictive_DEEZ",
+  "num_tests": 10,
+  "num_successes": 10,
+  "batch_size": 10,
+  "accuracy": 0.9,
+  "violation_precision": 0.8571428571428571,
+  "non_violation_precision": 1.0,
+  "violation_recall": 1.0,
+  "non_violation_recall": 0.75,
+  "confusion_matrix": [
+    [
+      3,
+      1
+    ],
+    [
+      0,
+      6
+    ]
+  ]
+}

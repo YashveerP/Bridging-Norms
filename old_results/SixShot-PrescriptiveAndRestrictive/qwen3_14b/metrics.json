@@ -1,0 +1,22 @@
+{
+  "model": "qwen3:14b",
+  "prompt": "SixShot-PrescriptiveAndRestrictive",
+  "num_tests": 100,
+  "num_successes": 100,
+  "batch_size": 20,
+  "accuracy": 0.84,
+  "violation_precision": 0.8478260869565217,
+  "non_violation_precision": 0.8333333333333334,
+  "violation_recall": 0.8125,
+  "non_violation_recall": 0.8653846153846154,
+  "confusion_matrix": [
+    [
+      45,
+      7
+    ],
+    [
+      9,
+      39
+    ]
+  ]
+}

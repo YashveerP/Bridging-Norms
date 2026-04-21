@@ -1,0 +1,18 @@
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: parsed but wrong size (15 != 20) Attempted Repairs: ['raw input']
+Attempt 1: parsed but wrong size (15 != 20) Attempted Repairs: []

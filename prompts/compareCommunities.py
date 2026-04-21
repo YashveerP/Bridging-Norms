@@ -5,10 +5,7 @@ from utils.dataSetUtils import *
 def compareCommmunitiesSysPrompt(subredditID):
     community = getCommunity(subredditID)
     rules = getCommunityRules(subredditID)
-    # rules = ""
-    comments = getCommunityComments(subredditID)
-    if comments.size > 50:
-            comments = comments.head(50)
+    comments = getCommunityComments(subredditID).head(8)
     return f"""
 You are a Reddit moderation classifier for {community["display_name_prefixed"]}.
 Community Description:

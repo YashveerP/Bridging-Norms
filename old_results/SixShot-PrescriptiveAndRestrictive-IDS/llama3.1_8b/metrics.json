@@ -1,0 +1,22 @@
+{
+  "model": "llama3.1:8b",
+  "prompt": "SixShot-IDS",
+  "num_tests": 100,
+  "num_successes": 94,
+  "batch_size": 20,
+  "accuracy": 0.7340425531914894,
+  "violation_precision": 0.6896551724137931,
+  "non_violation_precision": 0.8055555555555556,
+  "violation_recall": 0.851063829787234,
+  "non_violation_recall": 0.6170212765957447,
+  "confusion_matrix": [
+    [
+      29,
+      18
+    ],
+    [
+      7,
+      40
+    ]
+  ]
+}

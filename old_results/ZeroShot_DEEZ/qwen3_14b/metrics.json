@@ -1,0 +1,22 @@
+{
+  "model": "qwen3:14b",
+  "directory": "ZeroShot_DEEZ",
+  "num_tests": 100,
+  "num_successes": 99,
+  "batch_size": 20,
+  "accuracy": 0.797979797979798,
+  "violation_precision": 0.8297872340425532,
+  "non_violation_precision": 0.7692307692307693,
+  "violation_recall": 0.7647058823529411,
+  "non_violation_recall": 0.8333333333333334,
+  "confusion_matrix": [
+    [
+      40,
+      8
+    ],
+    [
+      12,
+      39
+    ]
+  ]
+}

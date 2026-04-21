@@ -5,6 +5,7 @@ import random
 import pandas as pd
 # dataset
 SEED = 21
+random.seed(SEED)
 data = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
 subredditToNorms = (
     data[data["label"] == "violation"]
@@ -101,7 +102,7 @@ def getCommunityComments(subredditID):
 # create a csv of the data set with each nv comment assigned to a community norm
 def generatePreparedDataSet(dataFrame):
     eval_rows = []
-    # Assign all comments comment id's based off of index
+    # Assign all comments comment id's based off of index44
     i = 0
     for _, row in dataFrame.iterrows():
         norm = row["target_reason"]
@@ -119,3 +120,11 @@ def generatePreparedDataSet(dataFrame):
     eval_df = pd.DataFrame(eval_rows)
     return eval_df
     # eval_df.to_csv(f"datasets/{fileName}.csv", index=False)
+
+
+def getSubreddits():
+    df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
+
+    reddits = df["subreddit_id"].value_counts()
+    # filter subreddits with > 150 comments
+    return reddits[reddits > 150].index.tolist()

@@ -20,13 +20,25 @@ LLAMA3 = model("meta-llama/llama-3.3-70b-instruct:free", "openrouter")
 GPT_OSS = model("openai/gpt-oss-120b:free", "openrouter")
 SAFEGUARD_LOCAL= model("gpt-oss-safeguard:20b", "local")
 
-# The 5 communities with most comments
-COMMUNITIES = ["t5_2xhvq", "t5_2w2s8", "t5_2qhw9", "t5_2qho4", "t5_3h47q"]
+# The communities with >= 150 comments(50 for training, 100 for testing)
+COMMUNITIES = getSubreddits()
+
+
 
 predictViolationPrompt = prompt(sixShotPrescriptiveAndRestrictive, predictViolationUserPrompt, pd.read_csv('datasets/tests.csv'))
 
-def makeCompareCommunityPrompt(community):
-    return prompt(compareCommmunitiesSysPrompt(community), compareCommunitesUserPrompt, pd.read_csv('datasets/tests.csv'))
+communityComments = {}
+sysPrompts = {}
+def makeCompareCommunityPrompt(communityA, communityB):
+    # cache communityA sysPrompt
+    if communityA not in sysPrompts:
+        sysPrompts[communityA] = compareCommmunitiesSysPrompt(communityA)
+    # cache community B comments
+    if communityB not in communityComments:
+        path = f'datasets/communities/{communityB}.csv'
+        communityComments[communityB] = pd.read_csv(path)
+
+    return prompt(sysPrompts[communityA], compareCommunitesUserPrompt, communityComments[communityB])
 
 async def run_experiments(jobs):
     local_jobs = []
@@ -56,7 +68,14 @@ async def run_experiments(jobs):
 # holds each experiment that will be run
 # Give it a Model, Prompt, and Directory to store results
 jobs = [
-    (GPT_OSS, makeCompareCommunityPrompt(COMMUNITIES[0]), f"{DIRECTORY}/{COMMUNITIES[0]} "),
+    
 ]
 
+A = COMMUNITIES[4]
+for i in range(5):
+    B = COMMUNITIES[i]
+    jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, B), f"{DIRECTORY}/{A}/{B}"))
+jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, A), f"{DIRECTORY}/{A}/{A}_Run2"))
+jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, A), f"{DIRECTORY}/{A}/{A}_Run3"))
+jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, A), f"{DIRECTORY}/{A}/{A}_Run4"))
 asyncio.run(run_experiments(jobs))

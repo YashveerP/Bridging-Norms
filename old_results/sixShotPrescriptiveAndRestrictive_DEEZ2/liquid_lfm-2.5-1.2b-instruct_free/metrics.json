@@ -1,0 +1,22 @@
+{
+  "model": "liquid/lfm-2.5-1.2b-instruct:free",
+  "directory": "sixShotPrescriptiveAndRestrictive_DEEZ2",
+  "num_tests": 10,
+  "num_successes": 6,
+  "batch_size": 10,
+  "accuracy": 0.5,
+  "violation_precision": 0.5,
+  "non_violation_precision": 0.0,
+  "violation_recall": 1.0,
+  "non_violation_recall": 0.0,
+  "confusion_matrix": [
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      3
+    ]
+  ]
+}

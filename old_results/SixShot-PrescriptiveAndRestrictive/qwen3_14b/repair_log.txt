@@ -1,0 +1,20 @@
+Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: JSON decode error: Expecting value: line 65 column 17 (char 2099)Attempt 0: JSON decode error: Expecting value: line 65 column 17 (char 2099)
+Attempt 1: JSON decode error: Expecting value: line 65 column 17 (char 2099)Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: JSON decode error: Invalid control character at: line 63 column 20 (char 3313)Attempt 0: JSON decode error: Invalid control character at: line 63 column 20 (char 3313)
+Attempt 1: JSON decode error: Invalid control character at: line 63 column 20 (char 3313)Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: JSON decode error: Expecting ',' delimiter: line 75 column 30 (char 3629)Attempt 0: JSON decode error: Expecting ',' delimiter: line 75 column 30 (char 3629)
+Attempt 1: JSON decode error: Expecting ',' delimiter: line 75 column 30 (char 3629)Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']Attempt 0: SUCCESS
+Repairs: ['raw input']

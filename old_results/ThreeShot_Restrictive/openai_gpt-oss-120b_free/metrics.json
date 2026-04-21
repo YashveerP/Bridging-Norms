@@ -1,0 +1,22 @@
+{
+  "model": "openai/gpt-oss-120b:free",
+  "directory": "ThreeShot_Restrictive",
+  "num_tests": 100,
+  "num_successes": 100,
+  "batch_size": 20,
+  "accuracy": 0.87,
+  "violation_precision": 0.8936170212765957,
+  "non_violation_precision": 0.8490566037735849,
+  "violation_recall": 0.84,
+  "non_violation_recall": 0.9,
+  "confusion_matrix": [
+    [
+      45,
+      5
+    ],
+    [
+      8,
+      42
+    ]
+  ]
+}

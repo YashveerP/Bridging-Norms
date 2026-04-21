@@ -1,0 +1,22 @@
+{
+  "model": "qwen3:14b",
+  "directory": "ThreeShot_Restrictive",
+  "num_tests": 100,
+  "num_successes": 95,
+  "batch_size": 20,
+  "accuracy": 0.8315789473684211,
+  "violation_precision": 0.8863636363636364,
+  "non_violation_precision": 0.7843137254901961,
+  "violation_recall": 0.78,
+  "non_violation_recall": 0.8888888888888888,
+  "confusion_matrix": [
+    [
+      40,
+      5
+    ],
+    [
+      11,
+      39
+    ]
+  ]
+}

@@ -1,112 +1,62 @@
+import os
 import json
-import os
 import numpy as np
-import pandas as pd
-from scipy.spatial.distance import pdist
-from scipy.cluster.hierarchy import linkage, dendrogram
 import matplotlib.pyplot as plt
-MODEL = "openai_gpt-oss-120b_free"
-def load_community_results(base_dir):
-    community_labels = {}
 
-    for subreddit in os.listdir(base_dir):
-        path = os.path.join(base_dir, subreddit, f"{MODEL}/results.json")
-        if not os.path.exists(path):
-            continue
+BASE_DIR = "results\compareCommunities"  # change if needed
 
-        with open(path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+# collect all communities
+communities = sorted(os.listdir(BASE_DIR))
 
-        # map comment_id -> 0/1
-        label_map = {
-            item["comment_id"]: 1 if item["pred_label"] == "violation" else 0
-            for item in data
-        }
+# initialize matrix
+n = len(communities)
+matrix = np.zeros((n, n))
 
-        community_labels[subreddit] = label_map
+# load data
+for i, prompt_comm in enumerate(communities):
+    for j, eval_comm in enumerate(communities):
+        path = os.path.join(BASE_DIR, prompt_comm, eval_comm, "openai_gpt-oss-120b_free\metrics.json")
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                data = json.load(f)
+                
+                # change this key depending on your metrics.json
+                acc = data.get("accuracy", 0)
+                matrix[j][i] = acc   # rows = eval, cols = prompt
+        else:
+            matrix[j][i] = np.nan
 
-    return community_labels
+# normalize by diagonal (self-accuracy)
+normalized = matrix.copy()
+for i in range(n):
+    if matrix[i][i] > 0:
+        normalized[i, :] /= matrix[i][i]
 
+# print(matrix)
+# plot
+plt.figure()
+plt.imshow(normalized)
 
-def get_shared_comment_ids(community_labels):
-    sets = [set(labels.keys()) for labels in community_labels.values()]
+plt.xticks(range(n), communities, rotation=45)
+plt.yticks(range(n), communities)
 
-    if not sets:
-        return []
+plt.xlabel("Prompt Community")
+plt.ylabel("Evaluation Community")
+plt.title("Normalized Cross-Community Accuracy")
 
-    shared_ids = sets[0].intersection(*sets[1:])
-    return sorted(shared_ids)
+plt.colorbar()
+plt.tight_layout()
 
-def build_vectors(community_labels, shared_ids):
-    community_vectors = {}
+plt.figure()
+plt.imshow(matrix)
 
-    for subreddit, labels in community_labels.items():
-        vector = [labels[cid] for cid in shared_ids]
-        community_vectors[subreddit] = np.array(vector)
+plt.xticks(range(n), communities, rotation=45)
+plt.yticks(range(n), communities)
 
-    return community_vectors
+plt.xlabel("Prompt Community")
+plt.ylabel("Evaluation Community")
+plt.title("Cross-Community Accuracy")
 
-
-
-
-def compute_disagreement_matrix(community_vectors):
-    subs = list(community_vectors.keys())
-    n = len(subs)
-
-    matrix = np.zeros((n, n))
-
-    for i in range(n):
-        for j in range(n):
-            A = community_vectors[subs[i]]
-            B = community_vectors[subs[j]]
-
-            matrix[i][j] = np.mean(A != B)
-
-    return pd.DataFrame(matrix, index=subs, columns=subs)
-
-
-
-def cluster_communities(community_vectors):
-    subs = list(community_vectors.keys())
-    X = np.array([community_vectors[s] for s in subs])
-
-    dist = pdist(X, metric='hamming')
-    Z = linkage(dist, method='average')
-
-    plt.figure()
-    dendrogram(Z, labels=subs)
-    plt.title("Community Clustering by Civility Enforcement")
-    plt.show()
-
-import os
-
-BASE_DIR = "results/compareCommunities"
-# Step 1: Load all community results
-community_labels = load_community_results(BASE_DIR)
-print(f"Loaded {len(community_labels)} communities")
-
-# Step 2: Find shared comment IDs
-shared_ids = get_shared_comment_ids(community_labels)
-print(f"Shared comments: {len(shared_ids)}")
-
-if len(shared_ids) == 0:
-    print("No shared comments across communities. Exiting.")
-
-# Step 3: Build vectors
-community_vectors = build_vectors(community_labels, shared_ids)
-
-# Step 4: Compute disagreement matrix
-df = compute_disagreement_matrix(community_vectors)
-
-print("\n=== Disagreement Matrix ===")
-print(df)
-
-# Save to CSV
-df.to_csv("disagreement_matrix.csv")
-print("\nSaved to disagreement_matrix.csv")
-
-# Step 5: Cluster communities (optional visualization)
-try:
-    cluster_communities(community_vectors)
-except Exception as e:
-    print(f"Clustering failed: {e}")
+plt.colorbar()
+plt.tight_layout()
+plt.show()

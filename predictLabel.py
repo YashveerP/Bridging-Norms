@@ -21,7 +21,7 @@ GPT_OSS = model("openai/gpt-oss-120b:free", "openrouter")
 SAFEGUARD_LOCAL= model("gpt-oss-safeguard:20b", "local")
 
 # The 5 communities with most comments
-COMMUNITIES = ["t5_2xhvq", "t5_2w2s8", "t5_2qhw9", "t5_2qho4", "t5_3h47q"]
+COMMUNITIES = getSubreddits()
 
 predictViolationPrompt = prompt(sixShotPrescriptiveAndRestrictive, predictViolationUserPrompt, pd.read_csv('datasets/tests.csv'))
 
@@ -56,7 +56,11 @@ async def run_experiments(jobs):
 # holds each experiment that will be run
 # Give it a Model, Prompt, and Directory to store results
 jobs = [
-    (GPT_OSS, makeCompareCommunityPrompt(COMMUNITIES[0]), f"{DIRECTORY}/{COMMUNITIES[0]} "),
 ]
 
-asyncio.run(run_experiments(jobs))
+for i in range(0, len(COMMUNITIES), 8):
+    for j in range(8):
+        if (i + j < len(COMMUNITIES)):
+            jobs.append((GPT_OSS, makeCompareCommunityPrompt(COMMUNITIES[i+ j]), f"{DIRECTORY}/{COMMUNITIES[i+j]}"))
+    asyncio.run(run_experiments(jobs))
+    jobs = []

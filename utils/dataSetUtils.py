@@ -119,3 +119,10 @@ def generatePreparedDataSet(dataFrame):
     eval_df = pd.DataFrame(eval_rows)
     return eval_df
     # eval_df.to_csv(f"datasets/{fileName}.csv", index=False)
+
+def getSubreddits():
+    df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
+
+    reddits = df["subreddit_id"].value_counts()
+    # filter subreddits with > 50 comments
+    return reddits[reddits > 50].index.tolist()

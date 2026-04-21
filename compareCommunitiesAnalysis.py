@@ -3,7 +3,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-BASE_DIR = "results\compareCommunities"  # change if needed
+BASE_DIR = os.path.join("results", "compareCommunities") # change if needed
 
 # collect all communities
 communities = sorted(os.listdir(BASE_DIR))
@@ -15,7 +15,8 @@ matrix = np.zeros((n, n))
 # load data
 for i, prompt_comm in enumerate(communities):
     for j, eval_comm in enumerate(communities):
-        path = os.path.join(BASE_DIR, prompt_comm, eval_comm, "openai_gpt-oss-120b_free\metrics.json")
+        metricsPath = os.path.join("openai_gpt-oss-120b_free", "metrics.json")
+        path = os.path.join(BASE_DIR, prompt_comm, eval_comm, metricsPath)
         if os.path.exists(path):
             with open(path, "r") as f:
                 data = json.load(f)

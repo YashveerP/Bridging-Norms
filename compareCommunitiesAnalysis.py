@@ -3,7 +3,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-BASE_DIR = os.path.join("results", "compareCommunities") # change if needed
+BASE_DIR = os.path.join("results", "CCTest") # change if needed
 
 # collect all communities
 communities = sorted(os.listdir(BASE_DIR))

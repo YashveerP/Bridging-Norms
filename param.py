@@ -1,6 +1,7 @@
 # Max number of attempts we will prompt openrouter after facing 400 errors
-MAX_RETRIES = 5
+MAX_RETRIES = 6
 # The total number of samples to give
 NUM_TESTS = 100
 # The samples sent per batch in each prompt
 BATCH_SIZE = 20
+SEED = 21

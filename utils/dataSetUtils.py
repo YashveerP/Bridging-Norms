@@ -1,10 +1,12 @@
 import ast
 import csv
 import json
+import os
 import random
 import pandas as pd
+from param import *
 # dataset
-SEED = 21
+
 random.seed(SEED)
 data = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
 subredditToNorms = (
@@ -42,13 +44,13 @@ def generatePreparedDataSet():
     eval_df.to_csv("datasets/prepared_dataset.csv", index=False)
 
 # create a balanced trainTestSplit and save to files
-def makeNewTrainTestSplit(numTests):
+def makeNewTrainTestSplit():
     df = pd.read_csv('datasets/prepared_dataset.csv')
 
     violations = df[df["true_label"] == "violation"]
     nonViolations = df[df["true_label"] == "non_violation"]
     # concat 50 random violation and nonviolation samples
-    testDF = pd.concat([violations.sample(int(numTests/2), random_state=SEED), nonViolations.sample(int(numTests/2), random_state=SEED)])
+    testDF = pd.concat([violations.sample(int(NUM_TESTS/2), random_state=SEED), nonViolations.sample(int(numTests/2), random_state=SEED)])
     # shuffle around all the samples
     testDF = testDF.sample(frac=1, random_state=SEED).reset_index(drop=True)
     # take out test samples and put them as training samples
@@ -87,18 +89,11 @@ def getCommunity(subredditID):
     df = pd.read_csv('datasets/subreddits-descriptions.csv')
     return df[df["name"] == subredditID].iloc[0]
 
-def printTopCommuntiies():
-    df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
+def getCommunityTests(subredditID):
+    return pd.read_csv(f'datasets/communities/{subredditID}/tests.csv')
 
-    print(df["subreddit_id"].value_counts().head(5))
-
-def getCommunityComments(subredditID):
-    df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
-    communityComments = df[df["subreddit_id"] == subredditID]
-    # communityComments = communityComments[communityComments.columns.difference(['subreddit_id', 'assigned_rule_cluster'])]
-    return communityComments
-
-
+def getCommunityShots(subredditID):
+    return pd.read_csv(f'datasets/communities/{subredditID}/shots.csv')
 # create a csv of the data set with each nv comment assigned to a community norm
 def generatePreparedDataSet(dataFrame):
     eval_rows = []
@@ -123,7 +118,43 @@ def generatePreparedDataSet(dataFrame):
 
 def getSubreddits():
     df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
-
     reddits = df["subreddit_id"].value_counts()
     # filter subreddits with > 150 comments
-    return reddits[reddits > 150].index.tolist()
+    return reddits[reddits > 106].index.tolist()
+
+def generateSubredditTests():
+    subreddits = getSubreddits()
+    for sub in subreddits:
+        makeNewTrainTestSplit(sub)
+
+
+# create a balanced sample dataset and shots dataset
+def makeNewTrainTestSplit(communityID):
+    df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
+    df = df[df["subreddit_id"] == communityID]
+    path = f"datasets/communities/{communityID}"
+    os.makedirs(f"{path}", exist_ok=True)
+
+    violations = df[df["label"] == "violation"]
+    nonViolations = df[df["label"] == "non_violation"]
+    # concat 50 random violation and nonviolation samples
+    testDF = pd.concat([violations.sample(int(NUM_TESTS/2), random_state=SEED), nonViolations.sample(int(NUM_TESTS/2), random_state=SEED)])
+    # shuffle around all the samples
+    testDF = testDF.sample(frac=1, random_state=SEED)
+    trainDF = df.drop(testDF.index)
+    testDF = testDF.reset_index(drop=True)
+    testDF = generatePreparedDataSet(testDF)
+    testDF.to_csv(f"{path}/tests.csv", index=False)
+
+    # take out test samples and put them as training samples
+    
+    violations = trainDF[trainDF["label"] == "violation"]
+    nonViolations = trainDF[trainDF["label"] == "non_violation"]
+    shots = pd.concat([violations.sample(3, random_state=SEED), nonViolations.sample(3, random_state=SEED)])
+    shots = shots.sample(frac=1, random_state=SEED)
+    shots = generatePreparedDataSet(shots)
+    shots.to_csv(f"{path}/shots.csv", index=False)
+
+def getSubredditName(subredditID):
+    df = pd.read_csv('datasets/subreddits-descriptions.csv')
+    return df[df["name"] == subredditID].iloc[0]["display_name_prefixed"]

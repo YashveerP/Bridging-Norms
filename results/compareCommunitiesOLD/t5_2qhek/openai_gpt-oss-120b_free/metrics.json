@@ -1,0 +1,22 @@
+{
+  "model": "openai/gpt-oss-120b:free",
+  "directory": "compareCommunities/t5_2qhek",
+  "num_tests": 100,
+  "num_successes": 99,
+  "batch_size": 20,
+  "accuracy": 0.7676767676767676,
+  "violation_precision": 0.7096774193548387,
+  "non_violation_precision": 0.8648648648648649,
+  "violation_recall": 0.8979591836734694,
+  "non_violation_recall": 0.64,
+  "confusion_matrix": [
+    [
+      32,
+      18
+    ],
+    [
+      5,
+      44
+    ]
+  ]
+}

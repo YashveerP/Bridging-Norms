@@ -5,7 +5,7 @@ from utils.dataSetUtils import *
 def compareCommmunitiesSysPrompt(subredditID):
     community = getCommunity(subredditID)
     rules = getCommunityRules(subredditID)
-    comments = getCommunityComments(subredditID).head(8)
+    comments = getCommunityShots(subredditID)
     return f"""
 You are a Reddit moderation classifier for {community["display_name_prefixed"]}.
 Community Description:

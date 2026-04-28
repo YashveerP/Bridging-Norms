@@ -1,0 +1,10 @@
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Invalid \escape: line 15 column 20 (char 393)
+Attempt 1: JSON decode error: Invalid \escape: line 15 column 20 (char 393)
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']

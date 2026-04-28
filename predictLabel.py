@@ -20,7 +20,7 @@ LLAMA3 = model("meta-llama/llama-3.3-70b-instruct:free", "openrouter")
 GPT_OSS = model("openai/gpt-oss-120b:free", "openrouter")
 SAFEGUARD_LOCAL= model("gpt-oss-safeguard:20b", "local")
 
-# The communities with >= 150 comments(50 for training, 100 for testing)
+# The communities with >= 106 comments(6 for training, 100 for testing)
 COMMUNITIES = getSubreddits()
 
 
@@ -35,9 +35,7 @@ def makeCompareCommunityPrompt(communityA, communityB):
         sysPrompts[communityA] = compareCommmunitiesSysPrompt(communityA)
     # cache community B comments
     if communityB not in communityComments:
-        path = f'datasets/communities/{communityB}.csv'
-        communityComments[communityB] = pd.read_csv(path)
-
+        communityComments[communityB] = getCommunityTests(communityB)
     return prompt(sysPrompts[communityA], compareCommunitesUserPrompt, communityComments[communityB])
 
 async def run_experiments(jobs):
@@ -71,11 +69,14 @@ jobs = [
     
 ]
 
-A = COMMUNITIES[4]
-for i in range(5):
-    B = COMMUNITIES[i]
-    jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, B), f"{DIRECTORY}/{A}/{B}"))
-jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, A), f"{DIRECTORY}/{A}/{A}_Run2"))
-jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, A), f"{DIRECTORY}/{A}/{A}_Run3"))
-jobs.append((GPT_OSS, makeCompareCommunityPrompt(A, A), f"{DIRECTORY}/{A}/{A}_Run4"))
+# code will be iterating by evaluated communities then the prompt communities
+for i in range(0, len(COMMUNITIES)):
+    A = COMMUNITIES[i]
+    for j in range(0, len(COMMUNITIES)):
+        B = COMMUNITIES[j]
+        if (not os.path.exists(f"results/{DIRECTORY}/{B}/{A}/openai_gpt-oss-120b_free/metrics.json")):
+            jobs.append((GPT_OSS, makeCompareCommunityPrompt(B, A), f"{DIRECTORY}/{B}/{A}"))
+            if (len(jobs) == 8):
+                asyncio.run(run_experiments(jobs))
+                jobs = []
 asyncio.run(run_experiments(jobs))

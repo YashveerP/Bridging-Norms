@@ -8,7 +8,7 @@ BASE_DIR = os.path.join("results", "compareCommunities") # change if needed
 
 # collect all communities
 communities = sorted(os.listdir(BASE_DIR))
-
+communities.remove("t5_2qnkr")
 # initialize matrix
 n = len(communities)
 matrix = np.zeros((n, n))
@@ -63,7 +63,6 @@ pairs.sort(key=lambda x: x[1], reverse=True)
 
 labels_sorted, values_sorted = zip(*pairs)
 
-print(pairs)
 plt.barh(labels_sorted[::-1], values_sorted[::-1])
 plt.title('Evaluated Community Accuracy')
 plt.xlabel('Mean Accuracy')
@@ -71,13 +70,19 @@ plt.ylabel('Evaluated Community')
 
 # normalize by diagonal (self-accuracy)
 normalized = matrix.copy()
+
+print("min:", matrix.min())
+
+print("max:", matrix.max())
 for i in range(n):
     if matrix[i][i] > 0:
         normalized[i, :] /= matrix[i][i]
+print("min:", normalized.min())
+print("max:", normalized.max())
 
 # plot
 plt.figure()
-plt.imshow(normalized)
+plt.imshow(normalized, cmap="Blues", vmin=.5, vmax=1.5)
 
 plt.xticks(range(n), labels, rotation=90)
 plt.yticks(range(n), labels)
@@ -90,7 +95,7 @@ plt.colorbar()
 plt.tight_layout()
 
 plt.figure()
-plt.imshow(matrix)
+plt.imshow(matrix, cmap="Blues", vmin=0.5, vmax=1)
 
 plt.xticks(range(n), labels, rotation=90)
 plt.yticks(range(n), labels)

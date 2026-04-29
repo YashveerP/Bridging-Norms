@@ -119,6 +119,7 @@ def generatePreparedDataSet(dataFrame):
 def getSubreddits():
     df = pd.read_csv('datasets/data_training_selected_clusters_comments_and_rules.csv')
     reddits = df["subreddit_id"].value_counts()
+    reddits.remove("t5_2qnkr")
     # filter subreddits with > 150 comments
     return reddits[reddits > 106].index.tolist()
 

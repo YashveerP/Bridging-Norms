@@ -10,6 +10,11 @@ __pycache__/
 .vscode/
 
 #data
-datasets/
+data_training_selected_clusters_comments_and_rules.csv
+prepared_dataset.csv
+removed_comments_rules.csv
+subreddits-descriptions.csv
+tests.csv
+train.csv
 results.json
 output.json

@@ -1,0 +1,10 @@
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Expecting ',' delimiter: line 87 column 6 (char 2108)
+Attempt 1: JSON decode error: Expecting ',' delimiter: line 87 column 6 (char 2108)

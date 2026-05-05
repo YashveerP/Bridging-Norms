@@ -1,0 +1,9 @@
+comment_id,body,norm,true_label
+0,How are they legally allowed to ask these questions and use them in the decision making process for hiring or to grant licensing or credentials?,"unprofessional, rude, or inappropriate behaviour",non_violation
+1,You are likely talking to an intern who feels smarter than they are because they graduated from medical school.,"unprofessional, rude, or inappropriate behaviour",violation
+2,"no no, not urology, NEUrology. Now i always say GU or “NEUROLOGY WITH AN N”","unprofessional, rude, or inappropriate behaviour",non_violation
+3,"Everything is awesome!!! Everything is great when you're part of a team!
+
+(note: things may not be 100% awesome in the team right now, I've lost track of the dynamics)","unprofessional, rude, or inappropriate behaviour",non_violation
+4,Racist,"unprofessional, rude, or inappropriate behaviour",violation
+5,Nazi,"unprofessional, rude, or inappropriate behaviour",violation

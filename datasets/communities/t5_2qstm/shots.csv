@@ -1,0 +1,10 @@
+comment_id,body,norm,true_label
+0,"Step one should be to read the flow chart in the wiki it guides you through the steps.
+
+It will glove you the basic framework",unhelpful or disrespectful,non_violation
+1,"If you couldn't spot this scam from a while away, I'm concerned about your business.",unhelpful or disrespectful,violation
+2,[deleted],unhelpful or disrespectful,non_violation
+3,Have you read the FAQ?,unhelpful or disrespectful,non_violation
+4,"Find the owner. 
+Take his Pounds, not his pounds.",unhelpful or disrespectful,violation
+5,The cost and size of a ring has zero to do with the love you have for the person. I was a person who got the $30k engagement ring about 25 years ago. I loved him so much I would've been thrilled with a soda can ring. I wonder if your girlfriend is under the social media pressure of the huge rock? Instagram and the like as so fake and it's ruining perception of what's real and normal for so many women. Good luck!,unhelpful or disrespectful,violation

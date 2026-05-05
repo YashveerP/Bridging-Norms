@@ -1,0 +1,11 @@
+comment_id,body,norm,true_label
+0,[deleted],be respectful to others,non_violation
+1,"It's not energized. I don't see how it would be any different than a cellphone. Just don't call them ""computer components"" or the luggage checkin clerk might try and have you arrested for bringing bomb components on a plane or some stupid shit.
+
+Just say its sensitive electronics or something idk.",be respectful to others,violation
+2,"Hello, I've decided to spoil myself by building my first PC. Besides the GPU, I have figured most of the parts. Which one would you recommend for 1080p 144Hz for less than 600€ ? It will be mainly for FF14, the Witcher, CyberPunk, Civ 6 and Total War Warhammer. 
+
+Thanks in advance.",be respectful to others,non_violation
+3,"You tell me. You're replying for the sake of replying now. It's their device, they can do what they want.",be respectful to others,non_violation
+4,Intel cucks probably,be respectful to others,violation
+5,That was a pretty good review. Why were these retards downvoting it?,be respectful to others,violation

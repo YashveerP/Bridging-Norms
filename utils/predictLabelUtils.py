@@ -187,6 +187,8 @@ async def openRouterPredictViolation(batch: list[dict], model, prompt, session):
                 # 429 handling
                 if response.status == 429:
                     wait_time = 2 ** attempt
+                    text = await response.text()
+                    print("ERROR RESPONSE:", text)
                     print(f"429 retry in {wait_time}s (attempt {attempt+1})")
                     await asyncio.sleep(wait_time)
                     continue

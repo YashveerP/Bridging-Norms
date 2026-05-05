@@ -1,0 +1,9 @@
+comment_id,body,norm,true_label
+0,"Much as I appreciate the sentiment, and will loudly sing in the choir of ""fuck Zak S"", as a political scientist by trade, using ""fascist"" as a synonym for ""toxic jerk"" really grinds my gears.
+
+Fascism is a sad and dangerous reality of the modern political landscape, and using it to describe mean people does nothing but dilute its meaning when it is both applicable and necessary.","personal insults, homophobia, sexism, racism, etc",non_violation
+1,Are the whites allowed to play without partaking in racism?,"personal insults, homophobia, sexism, racism, etc",violation
+2,"No, it wasn't. This new rule, if I understand correctly, was brought in by a post that had new information.","personal insults, homophobia, sexism, racism, etc",non_violation
+3,Then how come none of them are suspended?,"personal insults, homophobia, sexism, racism, etc",non_violation
+4,"Ok then it that case and especially with respect to the OP's question, shut the fuck up. You're in no position to give an opinion or advice because you don't know what you're talking about.","personal insults, homophobia, sexism, racism, etc",violation
+5,"Oh good, the judge of good and bad uses of narcolepsy, specifically, in fiction is here to tell me that this poster and their group - who none of which probably have narcolepsy statistically, would definitely be more capable than this game system in question of creating a less offensive portrayal of narcolepsy for their own use in their fantasy game by way of ""internal discussion""","personal insults, homophobia, sexism, racism, etc",violation

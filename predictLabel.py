@@ -1,4 +1,5 @@
 import asyncio
+import re
 
 import pandas as pd
 from utils.predictLabelUtils import predictViolation
@@ -13,15 +14,18 @@ from prompts.SixShot import *
 from prompts.prompts import predictViolationUserPrompt
 from prompts.compareCommunities import *
 
-DIRECTORY = "compareCommunities"
+DIRECTORY = "compareCommunities5"
 
 QWEN= model("qwen3:14b", "local")
 LLAMA3 = model("meta-llama/llama-3.3-70b-instruct:free", "openrouter")
 GPT_OSS = model("openai/gpt-oss-120b:free", "openrouter")
-SAFEGUARD_LOCAL= model("gpt-oss-safeguard:20b", "local")
+GPT_4O_MINI= model("openai/gpt-4o-mini", "openrouter")
+
+MODEL_TO_RUN = GPT_OSS
 
 # The communities with >= 106 comments(6 for training, 100 for testing)
 COMMUNITIES = getSubreddits()
+COMMUNITIES.remove("t5_2qnkr")
 
 
 
@@ -69,13 +73,14 @@ jobs = [
     
 ]
 
+safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL_TO_RUN.name)
 # code will be iterating by evaluated communities then the prompt communities
 for i in range(0, len(COMMUNITIES)):
     A = COMMUNITIES[i]
     for j in range(0, len(COMMUNITIES)):
         B = COMMUNITIES[j]
-        if (not os.path.exists(f"results/{DIRECTORY}/{B}/{A}/openai_gpt-oss-120b_free/metrics.json")):
-            jobs.append((GPT_OSS, makeCompareCommunityPrompt(B, A), f"{DIRECTORY}/{B}/{A}"))
+        if (not os.path.exists(f"results/{DIRECTORY}/{B}/{A}/{safe_model}/metrics.json")):
+            jobs.append((MODEL_TO_RUN, makeCompareCommunityPrompt(B, A), f"{DIRECTORY}/{B}/{A}"))
             if (len(jobs) == 8):
                 asyncio.run(run_experiments(jobs))
                 jobs = []

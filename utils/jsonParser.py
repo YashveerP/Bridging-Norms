@@ -11,7 +11,8 @@ def parse_or_repair_json(content: str, path) -> Any:
     """
 
     if not content or not content.strip():
-        raise ValueError("Model returned empty content")
+        print("Model returned empty content")
+        return []
 
     text = content.strip()
 

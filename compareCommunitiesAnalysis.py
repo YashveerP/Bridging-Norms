@@ -126,6 +126,7 @@ prompt_norm_pairs.sort(key=lambda x: x[2], reverse=True)
 
 prompt_raw_comms  = [p[0] for p in prompt_raw_pairs]
 prompt_raw_labels = [p[1] for p in prompt_raw_pairs]
+prompt_raw_values = [p[2] for p in prompt_raw_pairs]
 
 prompt_norm_comms  = [p[0] for p in prompt_norm_pairs]
 prompt_norm_labels = [p[1] for p in prompt_norm_pairs]
@@ -166,12 +167,23 @@ plt.colorbar()
 plt.tight_layout()
 
 # =========================
-# BAR CHART (raw mean)
+# BAR CHART (raw means of evaluation communities)
 # =========================
 plt.figure()
 plt.barh(raw_labels[::-1], raw_vals[::-1])
 plt.xlim(0.5, 1)
 plt.title('Evaluated Community Accuracy')
+plt.xlabel('Mean Accuracy')
+plt.ylabel('Evaluated Community')
+plt.tight_layout()
+
+# =========================
+# BAR CHART (raw means of prompt communities)
+# =========================
+plt.figure()
+plt.barh(prompt_raw_labels[::-1], prompt_raw_values[::-1])
+plt.xlim(0.5, 1)
+plt.title('Prompt Community Accuracy')
 plt.xlabel('Mean Accuracy')
 plt.ylabel('Evaluated Community')
 plt.tight_layout()

@@ -3,7 +3,9 @@ import os
 import matplotlib.pyplot as plt
 
 # --- Load data ---
-scores_df = pd.read_csv('datasets/contrastive.csv')
+scores_df = pd.read_csv('datasets/violating_clauses_contrastive_scores.csv')
+scores_df = pd.read_csv('datasets/violating_clauses_contrastive_scores.csv')
+scores_df = pd.read_csv('datasets/violating_clauses_contrastive_scores.csv')
 accuracy_df = pd.read_csv('datasets/accuracy.csv')
 meta_df = pd.read_csv('datasets/subreddits-descriptions.csv')
 
@@ -57,52 +59,52 @@ df = pd.DataFrame(rows)
 
 if df.empty:
     raise ValueError("No data after merging — check normalization")
+fig, axs = plt.subplots(3, 2, figsize=(12, 12))
 
-# --- Loop through all numeric contrastive columns ---
+axs = axs.flatten()  # makes indexing way easier
+
+plot_idx = 0
+
 for col in df.columns:
-    if col in ["subreddit", "accuracy"]:
+
+    if col in ["subreddit", "accuracy", "n_items"]:
+
         continue
 
     if not pd.api.types.is_numeric_dtype(df[col]):
-        continue
-    if col == "n_items":
+
         continue
 
+    if plot_idx >= len(axs):  # stop if we run out of subplots
+
+        break
+
     x = df[col]
+
     y = df["accuracy"]
 
     corr = x.corr(y)
 
+    ax = axs[plot_idx]
+
     # --- Plot ---
-    plt.figure(figsize=(6, 6))
-    plt.scatter(x, y)
-    plt.ylim(0, 1)
-    # match col:
-        # case "in_cluster_sim_mean":
-        #     plt.xlim(0, 1)
-        # case "in_cluster_sim_std":
-        #     plt.xlim(0, 1)
-        # case "cross_cluster_sim_mean":
-        #     plt.xlim(0, 1)
-        # case "cross_cluster_sim_std":
-        #     plt.xlim(0, 1)
-        # case "contrastive_score_mean":
-        #     plt.xlim(-1, 1)
-        # case "contrastive_score_std":
-        #     plt.xlim(0, 1)
 
+    ax.scatter(x, y)
 
+    ax.set_ylim(0, 1)
 
-    # label a few outliers (optional)
-    # for i in range(len(df)):
-    #     if y.iloc[i] < y.mean() - 0.1:
-    #         plt.text(x.iloc[i], y.iloc[i], df["subreddit"].iloc[i], fontsize=7)
+    ax.set_xlim(0, 0.4)
 
-    plt.xlabel(col)
-    plt.ylabel("Accuracy")
-    plt.title(f"{col} vs Accuracy\nPearson r = {corr:.3f}")
+    ax.set_xlabel(col)
 
-    # plt.tight_layout()
-    plt.show()
+    ax.set_ylabel("Accuracy")
+
+    ax.set_title(f"{col} vs Accuracy\nPearson r = {corr:.3f}")
 
     print(f"{col}: Pearson r = {corr:.4f}")
+
+    plot_idx += 1
+
+plt.tight_layout()
+
+plt.show()

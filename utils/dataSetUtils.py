@@ -68,18 +68,18 @@ def getCommunityRules(subreddit_id):
         )
 
         # Fix column names
-        df.columns = df.columns.str.strip()
+        df.columns = (df.columns.str or "").strip()
 
         # # Fix values
-        df["subreddit_id"] = df["subreddit_id"].str.strip()
+        df["subreddit_id"] = (df["subreddit_id"].str or "").strip()
 
         rules = df[df["subreddit_id"] == subreddit_id].iloc[0].rules
         rules = ast.literal_eval(rules)
     
         simplified = []
         for r in rules:
-            name = r.get("short_name", "").strip()
-            reason = r.get("violation_reason", "").strip()
+            name = (r.get("short_name", "") or "").strip()
+            reason = (r.get("violation_reason", "") or "").strip()
             
             simplified.append(f"{name}: {reason}")
         

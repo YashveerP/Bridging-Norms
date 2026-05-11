@@ -150,7 +150,7 @@ def localPredictViolation(batch, model, prompt):
             }
         )
 
-        content = response["message"]["content"].strip()
+        content = (response["message"]["content"] or "").strip()
 
         if not content:
             raise ValueError("Empty model output")
@@ -200,7 +200,7 @@ async def openRouterPredictViolation(batch: list[dict], model, prompt, session):
 
                 result = await response.json()
                 msg = result["choices"][0]["message"]
-                content = msg.get("content", "").strip()
+                content = (msg.get("content", "") or "").strip()
 
                 return content
 

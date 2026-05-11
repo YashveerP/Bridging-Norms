@@ -15,7 +15,8 @@ safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
 
 # collect all communities
 communities = sorted(os.listdir(BASE_DIR))
-communities.remove("t5_2qnkr")
+if (communities.index("t5_2qnkr")):
+    communities.remove("t5_2qnkr")
 # initialize matrix
 n = len(communities)
 matrix = np.zeros((n, n))
@@ -46,6 +47,17 @@ for i in range(len(communities)):
 
 # --- compute normalized means ---
 norm_means = {comm: np.mean(normalized[i, :]) for i, comm in enumerate(communities)}
+
+# --- compute prompt-community means (column means) ---
+prompt_raw_means = {
+    comm: np.nanmean(matrix[:, i])
+    for i, comm in enumerate(communities)
+}
+
+prompt_norm_means = {
+    comm: np.nanmean(normalized[:, i])
+    for i, comm in enumerate(communities)
+}
 
 # --- load labels + comment counts ---
 df = pd.read_csv('datasets/subreddits-descriptions.csv')
@@ -97,6 +109,62 @@ normalized_count_sorted = normalized[np.ix_(count_idx, count_idx)]
 
 n = len(communities)
 
+# --- prompt-community sorting ---
+prompt_raw_pairs = []
+prompt_norm_pairs = []
+
+for comm in communities:
+    row = df[df["name"] == comm].iloc[0]
+    count = comment_counts.get(comm, 0)
+    label = f"{row['display_name_prefixed']} ({comm}) | n={count}"
+
+    prompt_raw_pairs.append((comm, label, prompt_raw_means[comm]))
+    prompt_norm_pairs.append((comm, label, prompt_norm_means[comm]))
+
+prompt_raw_pairs.sort(key=lambda x: x[2], reverse=True)
+prompt_norm_pairs.sort(key=lambda x: x[2], reverse=True)
+
+prompt_raw_comms  = [p[0] for p in prompt_raw_pairs]
+prompt_raw_labels = [p[1] for p in prompt_raw_pairs]
+
+prompt_norm_comms  = [p[0] for p in prompt_norm_pairs]
+prompt_norm_labels = [p[1] for p in prompt_norm_pairs]
+
+prompt_raw_idx  = [idx_map[c] for c in prompt_raw_comms]
+prompt_norm_idx = [idx_map[c] for c in prompt_norm_comms]
+
+matrix_prompt_raw_sorted = matrix[np.ix_(prompt_raw_idx, prompt_raw_idx)]
+
+normalized_prompt_norm_sorted = normalized[
+    np.ix_(prompt_norm_idx, prompt_norm_idx)
+]
+
+# =========================
+# RAW HEATMAP (sorted by prompt-community accuracy)
+# =========================
+plt.figure()
+plt.imshow(matrix_prompt_raw_sorted, cmap="Blues", vmin=0.5, vmax=1)
+plt.xticks(range(n), prompt_raw_labels, rotation=90)
+plt.yticks(range(n), prompt_raw_labels)
+plt.title("Cross-Community Accuracy (Sorted by Mean Accuracy of Prompt Community)")
+plt.xlabel("Prompt Community")
+plt.ylabel("Evaluation Community")
+plt.colorbar()
+plt.tight_layout()
+
+# =========================
+# NORMALIZED HEATMAP (sorted by prompt-community accuracy)
+# =========================
+plt.figure()
+plt.imshow(normalized_prompt_norm_sorted, cmap="Blues", vmin=.5, vmax=1.5)
+plt.xticks(range(n), prompt_norm_labels, rotation=90)
+plt.yticks(range(n), prompt_norm_labels)
+plt.title("Normalized Cross-Community Accuracy (Sorted by Normalized Mean of Prompt Community)")
+plt.xlabel("Prompt Community")
+plt.ylabel("Evaluation Community")
+plt.colorbar()
+plt.tight_layout()
+
 # =========================
 # BAR CHART (raw mean)
 # =========================
@@ -115,7 +183,7 @@ plt.figure()
 plt.imshow(matrix_raw_sorted, cmap="Blues", vmin=0.5, vmax=1)
 plt.xticks(range(n), raw_labels, rotation=90)
 plt.yticks(range(n), raw_labels)
-plt.title("Cross-Community Accuracy (Sorted by Mean Accuracy)")
+plt.title("Cross-Community Accuracy (Sorted by Mean Accuracy of Evaluation Community)")
 plt.xlabel("Prompt Community")
 plt.ylabel("Evaluation Community")
 plt.colorbar()
@@ -128,7 +196,7 @@ plt.figure()
 plt.imshow(normalized_norm_sorted, cmap="Blues", vmin=.5, vmax=1.5)
 plt.xticks(range(n), norm_labels, rotation=90)
 plt.yticks(range(n), norm_labels)
-plt.title("Normalized Cross-Community Accuracy (Sorted by Normalized Mean)")
+plt.title("Normalized Cross-Community Accuracy (Sorted by Normalized Mean of Evaluation Community)")
 plt.xlabel("Prompt Community")
 plt.ylabel("Evaluation Community")
 plt.colorbar()

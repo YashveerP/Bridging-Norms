@@ -15,7 +15,7 @@ safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
 
 # collect all communities
 communities = sorted(os.listdir(BASE_DIR))
-if (communities.index("t5_2qnkr")):
+if (communities.count("t5_2qnkr")):
     communities.remove("t5_2qnkr")
 # initialize matrix
 n = len(communities)
@@ -35,7 +35,6 @@ for i, prompt_comm in enumerate(communities):
                 matrix[j][i] = acc   # rows = eval, cols = prompt
         else:
             matrix[j][i] = np.nan
-
 # --- compute raw means (for bar chart + raw sorting) ---
 raw_means = {comm: np.mean(matrix[i, :]) for i, comm in enumerate(communities)}
 

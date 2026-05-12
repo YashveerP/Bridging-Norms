@@ -3,5 +3,5 @@ MAX_RETRIES = 6
 # The total number of samples to give
 NUM_TESTS = 100
 # The samples sent per batch in each prompt
-BATCH_SIZE = 5
+BATCH_SIZE = 10
 SEED = 21

@@ -14,14 +14,14 @@ from prompts.SixShot import *
 from prompts.prompts import predictViolationUserPrompt
 from prompts.compareCommunities import *
 
-DIRECTORY = "compareCommunities5"
+DIRECTORY = "compareCommunities10"
 
 QWEN= model("qwen3:14b", "local")
 LLAMA3 = model("meta-llama/llama-3.3-70b-instruct:free", "openrouter")
 GPT_OSS = model("openai/gpt-oss-120b:free", "openrouter")
 GPT_4O_MINI= model("openai/gpt-4o-mini", "openrouter")
 
-MODEL_TO_RUN = GPT_OSS
+MODEL_TO_RUN = GPT_4O_MINI
 
 # The communities with >= 106 comments(6 for training, 100 for testing)
 COMMUNITIES = getSubreddits()

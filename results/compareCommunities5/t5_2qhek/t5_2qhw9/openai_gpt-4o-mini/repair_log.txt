@@ -1,0 +1,40 @@
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Extra data: line 5 column 4 (char 106)
+Attempt 1: JSON decode error: Extra data: line 5 column 4 (char 106)
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Unterminated string starting at: line 20 column 17 (char 496)
+Attempt 1: JSON decode error: Unterminated string starting at: line 20 column 17 (char 496)
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Extra data: line 5 column 4 (char 147)
+Attempt 1: JSON decode error: Extra data: line 5 column 4 (char 147)
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Extra data: line 5 column 4 (char 193)
+Attempt 1: JSON decode error: Extra data: line 5 column 4 (char 193)
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']

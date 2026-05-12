@@ -3,9 +3,9 @@ import os
 import matplotlib.pyplot as plt
 
 # --- Load data ---
-scores_df = pd.read_csv('datasets/violating_clauses_contrastive_scores.csv')
-scores_df = pd.read_csv('datasets/violating_clauses_contrastive_scores.csv')
-scores_df = pd.read_csv('datasets/violating_clauses_contrastive_scores.csv')
+# scores_df = pd.read_csv('datasets/all_comments_contrastive_scores.csv')
+scores_df = pd.read_csv('datasets/all_clauses_contrastive_scores.csv')
+# scores_df = pd.read_csv('datasets/violating_clauses_contrastive_scores.csv')
 accuracy_df = pd.read_csv('datasets/accuracy.csv')
 meta_df = pd.read_csv('datasets/subreddits-descriptions.csv')
 
@@ -60,6 +60,7 @@ df = pd.DataFrame(rows)
 if df.empty:
     raise ValueError("No data after merging — check normalization")
 fig, axs = plt.subplots(3, 2, figsize=(12, 12))
+fig.suptitle("Violating Clauses")
 
 axs = axs.flatten()  # makes indexing way easier
 

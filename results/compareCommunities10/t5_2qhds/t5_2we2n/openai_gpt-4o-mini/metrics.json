@@ -1,0 +1,22 @@
+{
+  "model": "openai/gpt-4o-mini",
+  "directory": "compareCommunities10/t5_2qhds/t5_2we2n",
+  "num_tests": 100,
+  "num_successes": 84,
+  "batch_size": 10,
+  "accuracy": 0.7976190476190477,
+  "violation_precision": 0.8823529411764706,
+  "non_violation_precision": 0.74,
+  "violation_recall": 0.6976744186046512,
+  "non_violation_recall": 0.9024390243902439,
+  "confusion_matrix": [
+    [
+      37,
+      4
+    ],
+    [
+      13,
+      30
+    ]
+  ]
+}

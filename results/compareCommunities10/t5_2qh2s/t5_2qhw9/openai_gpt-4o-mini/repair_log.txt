@@ -1,0 +1,20 @@
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Extra data: line 5 column 4 (char 88)
+Attempt 1: JSON decode error: Extra data: line 5 column 4 (char 88)
+Attempt 0: JSON decode error: Extra data: line 5 column 4 (char 99)
+Attempt 1: JSON decode error: Extra data: line 5 column 4 (char 99)
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Extra data: line 5 column 4 (char 193)
+Attempt 1: JSON decode error: Extra data: line 5 column 4 (char 193)
+Attempt 0: SUCCESS
+Repairs: ['raw input']
+Attempt 0: JSON decode error: Extra data: line 5 column 4 (char 118)
+Attempt 1: JSON decode error: Extra data: line 5 column 4 (char 118)

@@ -3,7 +3,9 @@ import json
 import re
 import numpy as np
 import pandas as pd
+import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from statsmodels.stats.anova import anova_lm
 
 # ============================================================
 # CONFIG
@@ -15,17 +17,13 @@ MODEL = "openai/gpt-oss-120b:free"
 safe_model = re.sub(r'[<>:"/\\|?*]', '_', MODEL)
 
 # ============================================================
-# LOAD COMMUNITIES
+# LOAD DATA
 # ============================================================
 
 communities = sorted(os.listdir(BASE_DIR))
 
 if "t5_2qnkr" in communities:
     communities.remove("t5_2qnkr")
-
-# ============================================================
-# BUILD DATAFRAME
-# ============================================================
 
 rows = []
 
@@ -60,89 +58,56 @@ for prompt_comm in communities:
 df = pd.DataFrame(rows)
 
 # ============================================================
-# CLEANING
+# TWO-WAY ANOVA
 # ============================================================
 
-df = df.dropna(subset=["accuracy"])
-
-df["prompt_community"] = df["prompt_community"].astype("category")
-df["evaluation_community"] = df["evaluation_community"].astype("category")
-
-# ============================================================
-# 1. BASELINE MODEL (evaluation only)
-# ============================================================
-
-model_eval = smf.ols(
-    "accuracy ~ C(evaluation_community)",
-    data=df
-).fit()
-
-r2_eval = model_eval.rsquared
-
-# ============================================================
-# 2. PROMPT MODEL (adds prompt)
-# ============================================================
-
-model_prompt = smf.ols(
-    "accuracy ~ C(evaluation_community) + C(prompt_community)",
-    data=df
-).fit()
-
-r2_prompt = model_prompt.rsquared
-
-# ============================================================
-# 3. BASELINE MODEL (prompt only)
-# ============================================================
-
-model_prompt_only = smf.ols(
-    "accuracy ~ C(prompt_community)",
-    data=df
-).fit()
-
-r2_prompt_only = model_prompt_only.rsquared
-
-# ============================================================
-# 4. FULL MODEL (both)
-# ============================================================
-
-model_full = smf.ols(
+model = smf.ols(
     "accuracy ~ C(prompt_community) + C(evaluation_community)",
     data=df
 ).fit()
 
-r2_full = model_full.rsquared
-
-# ============================================================
-# SINGLE-NUMBER EFFECTS (THE IMPORTANT PART)
-# ============================================================
-
-prompt_effect = r2_full - r2_eval
-eval_effect = r2_full - r2_prompt_only
+anova_table = anova_lm(model, typ=2)
 
 print("\n==============================")
-print("VARIANCE EXPLAINED SUMMARY")
-print("==============================")
+print("TWO-WAY ANOVA")
+print("==============================\n")
 
-print(f"R² (evaluation only): {r2_eval:.4f}")
-print(f"R² (prompt only):     {r2_prompt_only:.4f}")
-print(f"R² (full model):      {r2_full:.4f}")
-
-print("\n==============================")
-print("KEY RESULTS (SINGLE NUMBERS)")
-print("==============================")
-
-print(f"Prompt community effect (ΔR²): {prompt_effect:.4f}")
-print(f"Evaluation community effect (ΔR²): {eval_effect:.4f}")
+print(anova_table)
 
 # ============================================================
-# OPTIONAL: PERCENT VERSION (for papers)
+# EFFECT SIZES (ETA SQUARED)
 # ============================================================
 
+ss_total = anova_table["sum_sq"].sum()
+
+anova_table["eta_sq"] = anova_table["sum_sq"] / ss_total
+
 print("\n==============================")
-print("PERCENT VARIANCE EXPLAINED")
-print("==============================")
+print("EFFECT SIZES (ETA SQUARED)")
+print("==============================\n")
 
-print(f"Prompt community explains: {prompt_effect * 100:.2f}% of variance")
-print(f"Evaluation community explains: {eval_effect * 100:.2f}% of variance")
+print(anova_table[["sum_sq", "F", "PR(>F)", "eta_sq"]])
 
+# ============================================================
+# CLEAN SUMMARY
+# ============================================================
 
+prompt_eta = anova_table.loc["C(prompt_community)", "eta_sq"]
+prompt_p = anova_table.loc["C(prompt_community)", "PR(>F)"]
+
+eval_eta = anova_table.loc["C(evaluation_community)", "eta_sq"]
+eval_p = anova_table.loc["C(evaluation_community)", "PR(>F)"]
+
+print("\n==============================")
+print("SUMMARY")
+print("==============================\n")
+
+print(f"Prompt community effect:")
+print(f"  η² = {prompt_eta:.4f}")
+print(f"  p  = {prompt_p:.6g}")
+
+print()
+
+print(f"Evaluation community effect:")
+print(f"  η² = {eval_eta:.4f}")
+print(f"  p  = {eval_p:.6g}")
